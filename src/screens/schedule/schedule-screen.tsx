@@ -25,7 +25,7 @@ interface Training {
 export function useUser() {
     return {
         user: {
-            role: 'ADMIN', // ou 'COLLABORATOR'
+            role: 'ADMIN',
             id: 1
         }
     }
@@ -37,8 +37,8 @@ export default function ScheduleScreen() {
     const { colors } = useTheme()
 
     const screenWidth = Dimensions.get('window').width
-    const horizontalPadding = 16 * 2 // paddingHorizontal do container
-    const dayMargin = 1 * 2 // marginHorizontal * 2 por item
+    const horizontalPadding = 16 * 2
+    const dayMargin = 1 * 2
     const columns = 8
 
     const dayWidth = (screenWidth - horizontalPadding - (dayMargin * columns)) / columns
@@ -62,29 +62,29 @@ export default function ScheduleScreen() {
                 : schedule.coach.id === user.id
             return inSelectedWeek && matchesDay && matchesCollaborator
         })
-        .map((schedule) => {
-            return {
-                id: String(schedule.id),
-                startTime: format(schedule.start, 'HH:mm'),
-                endTime: format(schedule.end, 'HH:mm'),
-                title: schedule.trainingPlanning.title,
-                notes: undefined, // ou algo como: schedule.notes se tiver
-                collaboratorId: schedule.coach.id,
-                date: format(schedule.start, 'yyyy-MM-dd'),
-                color: schedule.coach.schedulerColor,
-            }
-        })
+        .map((schedule) => ({
+            id: String(schedule.id),
+            startTime: format(schedule.start, 'HH:mm'),
+            endTime: format(schedule.end, 'HH:mm'),
+            title: schedule.trainingPlanning.title,
+            notes: undefined,
+            collaboratorId: schedule.coach.id,
+            coachName: schedule.coach.name,
+            athleteName: schedule.athlete.name,
+            date: format(schedule.start, 'yyyy-MM-dd'),
+            color: schedule.coach.schedulerColor,
+        }))
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background, paddingHorizontal: 16, paddingTop: 50 }}>
-            {/* Header - Dias da semana */}
+
             <WeekDaySelector
                 selectedDay={selectedDay}
                 onSelectDay={setSelectedDay}
                 startDate={selectedWeek.startDate}
             />
 
-            {/* Filtro de colaborador (somente admin) */}
+
             {isAdmin && (
                 <View style={{ zIndex: 999 }}>
                     <RNPickerSelect
@@ -129,7 +129,7 @@ export default function ScheduleScreen() {
                 </View>
             )}
 
-            {/* Lista de treinos */}
+
             <ScheduleComponent trainings={trainings} colors={colors} coaches={mockCoaches} />
 
 

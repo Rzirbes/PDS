@@ -16,9 +16,9 @@ export default function WeekDaySelector({ selectedDay, onSelectDay, startDate }:
     const { colors } = useTheme()
 
     const screenWidth = Dimensions.get('window').width
-    const spacing = 4 // espaço entre itens
-    const totalSpacing = spacing * 6 // 7 dias = 6 espaços
-    const itemWidth = (screenWidth - 32 - totalSpacing) / 7 // 32 = paddingHorizontal do container pai
+    const spacing = 4 
+    const totalSpacing = spacing * 6 
+    const itemWidth = (screenWidth - 32 - totalSpacing) / 7 
 
     return (
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
