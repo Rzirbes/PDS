@@ -1,15 +1,23 @@
-// src/components/schedule/TrainingGroupModal.tsx
-
 import React from 'react'
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import { Modal, Pressable, Text, TouchableOpacity, View, ScrollView } from 'react-native'
 import { PositionedTraining } from './schedule-component'
+import { useTheme } from '../../context/theme-context'
 
 interface Props {
     visibleGroup: PositionedTraining[] | null
     onClose: () => void
+    onSelectTraining: (training: PositionedTraining) => void
+    coaches: {
+        id: number
+        schedulerColor: string
+    }[]
 }
 
-export function TrainingGroupModal({ visibleGroup, onClose }: Props) {
+export function TrainingGroupModal({ visibleGroup, onClose, onSelectTraining, coaches }: Props) {
+    const { colors } = useTheme()
+
+    if (!visibleGroup) return null
+
     return (
         <Modal
             transparent
@@ -20,7 +28,7 @@ export function TrainingGroupModal({ visibleGroup, onClose }: Props) {
             <Pressable
                 style={{
                     flex: 1,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    backgroundColor: 'rgba(0,0,0,0.7)',
                     justifyContent: 'center',
                     alignItems: 'center',
                     padding: 16,
@@ -30,12 +38,11 @@ export function TrainingGroupModal({ visibleGroup, onClose }: Props) {
                 <Pressable
                     onPress={() => { }}
                     style={{
-                        backgroundColor: 'white',
+                        backgroundColor: colors.secondary,
                         padding: 20,
                         borderRadius: 12,
                         width: '100%',
                         maxHeight: '70%',
-                        position: 'relative',
                     }}
                 >
                     <TouchableOpacity
@@ -47,35 +54,47 @@ export function TrainingGroupModal({ visibleGroup, onClose }: Props) {
                             zIndex: 1,
                         }}
                     >
-                        <Text style={{ fontSize: 18 }}>✕</Text>
+                        <Text style={{ fontSize: 18, color: colors.text }}>✕</Text>
                     </TouchableOpacity>
 
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Treinos neste horário</Text>
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16, color: colors.text }}>
+                        Treinos neste horário
+                    </Text>
 
-                    {visibleGroup?.map(training => (
-                        <View key={training.id} style={{ marginBottom: 12 }}>
-                            <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 4 }}>
-                                {training.title}
-                            </Text>
-                            <Text style={{ color: '#888', marginBottom: 2 }}>
-                                {training.startTime} - {training.endTime}
-                            </Text>
-                            <Text>
-                                Atleta: <Text style={{ fontWeight: '600' }}>{training.athleteName}</Text>
-                            </Text>
-                            <Text>
-                                Colaborador: <Text style={{ fontWeight: '600' }}>{training.coachName}</Text>
-                            </Text>
-                            <View
-                                style={{
-                                    borderBottomWidth: 1,
-                                    borderBottomColor: '#eee',
-                                    paddingBottom: 12,
-                                    marginBottom: 12,
-                                }}
-                            />
-                        </View>
-                    ))}
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        {visibleGroup.map(training => {
+                            const coachColor =
+                                coaches.find(c => c.id === training.collaboratorId)?.schedulerColor ?? '#3B82F6'
+
+                            return (
+                                <TouchableOpacity
+                                    key={training.id}
+                                    onPress={() => onSelectTraining(training)}
+                                    style={{
+                                        backgroundColor: coachColor,
+                                        borderRadius: 8,
+                                        padding: 12,
+                                        marginBottom: 12,
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.4,
+                                        shadowRadius: 4,
+                                    }}
+                                >
+                                    <Text numberOfLines={1} style={{ fontWeight: 'bold', fontSize: 14, color: colors.text }}>
+                                        {training.startTime} - {training.endTime} | {training.title}
+                                    </Text>
+
+                                    <Text numberOfLines={1} style={{ color: colors.text, fontSize: 12, marginTop: 2 }}>
+                                        Atleta: {training.athleteName}
+                                    </Text>
+                                    <Text numberOfLines={1} style={{ color: colors.text, fontSize: 12 }}>
+                                        Treinador: {training.coachName}
+                                    </Text>
+                                </TouchableOpacity>
+                            )
+                        })}
+                    </ScrollView>
                 </Pressable>
             </Pressable>
         </Modal>

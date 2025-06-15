@@ -1,15 +1,16 @@
-// hooks/use-validated-coaches.ts
+
+import useSWR from 'swr'
 import { useCoaches } from '../lib/swr'
 import { coachesArraySchema } from '../zod/coach-schema'
+import { getCoaches } from '../services/session-service'
 
 export function useValidatedCoaches() {
-    const { data, error, isLoading } = useCoaches()
-    const parsed = coachesArraySchema.safeParse(data)
+    const { data, error, isLoading } = useSWR('coaches', getCoaches)
 
     return {
-        coaches: parsed.success ? parsed.data : [],
+        coaches: data?.data ?? [],
+        total: data?.total ?? 0,
         isLoading,
-        error,
-        isValid: parsed.success,
+        isError: !!error,
     }
 }

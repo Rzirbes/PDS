@@ -6,10 +6,11 @@ import { mockCoaches, mockSchedules, mockTrainingPlannings } from '../../mock'
 import { generateWeeklyIntervalsForMonth } from '../../utils/date-utils'
 import { format } from 'date-fns'
 import RNPickerSelect from 'react-native-picker-select'
-import { useTheme } from '../../context/ThemeContext'
+import { useTheme } from '../../context/theme-context'
 import { ptBR } from 'date-fns/locale'
 import WeekDaySelector from '../../components/schedule/week-day-selector'
 import ScheduleComponent from '../../components/schedule/schedule-component'
+import CollaboratorPicker from '../../components/ui/collaborator-picker'
 
 interface Training {
     id: string
@@ -86,47 +87,11 @@ export default function ScheduleScreen() {
 
 
             {isAdmin && (
-                <View style={{ zIndex: 999 }}>
-                    <RNPickerSelect
-                        onValueChange={(value) => setSelectedCollaboratorId(value)}
-                        value={selectedCollaboratorId}
-                        items={[
-                            { label: 'Todos', value: null },
-                            ...mockCoaches.map(coach => ({
-                                label: coach.name,
-                                value: coach.id,
-                            })),
-                        ]}
-                        placeholder={{ label: 'Filtrar por colaborador...', value: null }}
-                        useNativeAndroidPickerStyle={false}
-                        style={{
-                            inputIOS: {
-                                padding: 16,
-                                borderRadius: 8,
-                                backgroundColor: colors.secondary,
-                                color: colors.text,
-                            },
-                            inputAndroid: {
-                                padding: 12,
-                                borderRadius: 8,
-                                backgroundColor: colors.secondary,
-                                color: colors.text,
-                            },
-                            iconContainer: {
-                                top: 15,
-                                right: 12,
-                            },
-                            placeholder: {
-                                color: colors.muted,
-                            },
-                        }}
-                        Icon={() => (
-                            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                <Text style={{ color: colors.text, fontSize: 18 }}>▼</Text>
-                            </View>
-                        )}
-                    />
-                </View>
+                <CollaboratorPicker
+                    selectedId={selectedCollaboratorId}
+                    onSelect={setSelectedCollaboratorId}
+                    collaborators={mockCoaches}
+                />
             )}
 
 

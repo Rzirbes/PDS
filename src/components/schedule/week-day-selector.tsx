@@ -4,7 +4,7 @@ import React from 'react'
 import { View, Text, TouchableOpacity, Dimensions } from 'react-native'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { useTheme } from '../../context/ThemeContext'
+import { useTheme } from '../../context/theme-context'
 
 interface Props {
     selectedDay: string | null
@@ -16,9 +16,9 @@ export default function WeekDaySelector({ selectedDay, onSelectDay, startDate }:
     const { colors } = useTheme()
 
     const screenWidth = Dimensions.get('window').width
-    const spacing = 4 
-    const totalSpacing = spacing * 6 
-    const itemWidth = (screenWidth - 32 - totalSpacing) / 7 
+    const spacing = 4
+    const totalSpacing = spacing * 6
+    const itemWidth = (screenWidth - 32 - totalSpacing) / 7
 
     return (
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>

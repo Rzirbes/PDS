@@ -7,7 +7,7 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 // import { serverFetcher } from '../services/fetcher'
 // import { useSWR } from '../lib/swr'
 import { showMessage } from 'react-native-flash-message'
-import { useTheme } from '../../context/ThemeContext'
+import { useTheme } from '../../context/theme-context'
 import ThemedInput from '../ui/themedInput'
 
 const schema = z.object({

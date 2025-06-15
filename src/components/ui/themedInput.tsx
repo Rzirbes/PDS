@@ -1,6 +1,6 @@
 // components/ui/ThemedInput.tsx
 import { TextInput, StyleSheet, TextInputProps } from 'react-native'
-import { useTheme } from '../../context/ThemeContext'
+import { useTheme } from '../../context/theme-context'
 
 export default function ThemedInput(props: TextInputProps) {
     const { colors } = useTheme()

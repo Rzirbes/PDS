@@ -1,9 +1,8 @@
-// src/components/schedule/ScheduleComponent.tsx
-
 import React from 'react'
-import { View, Text, ScrollView } from 'react-native'
+import { View, Text, ScrollView, ViewStyle } from 'react-native'
 import { TrainingCard } from './training-card'
 import { TrainingGroupModal } from './training-group-modal'
+import { TrainingDetailsModal } from './training-detail-modal'
 
 interface Training {
     id: string
@@ -16,6 +15,14 @@ interface Training {
     color: string
     coachName: string
     athleteName: string
+}
+
+interface TrainingCardProps {
+    training: PositionedTraining
+    onPress: () => void
+    style?: ViewStyle
+    isTopCard: boolean
+    groupSize: number
 }
 
 interface Props {
@@ -35,15 +42,25 @@ export type PositionedTraining = Training & {
     groupSize: number
 }
 
+const PIXELS_PER_MINUTE = 1.6
+const startMinutes = 330 // Começando às 5:30 da manhã
+const totalMinutes = 21 * 50
+const containerHeight = totalMinutes * PIXELS_PER_MINUTE
+
+function getMinutes(time: string) {
+    const [h, m] = time.split(':').map(Number)
+    return h * 60 + m
+}
+
+function calculatePosition(startTime: string) {
+    const minutesFromStart = getMinutes(startTime) - startMinutes
+    return minutesFromStart * PIXELS_PER_MINUTE
+}
+
 function groupOverlappingTrainings(trainings: Training[]): PositionedTraining[][] {
     const groups: PositionedTraining[][] = []
     const sorted = [...trainings].sort((a, b) => a.startTime.localeCompare(b.startTime))
     let group: Training[] = []
-
-    const getMinutes = (time: string) => {
-        const [h, m] = time.split(':').map(Number)
-        return h * 60 + m
-    }
 
     sorted.forEach((current) => {
         if (group.length === 0) {
@@ -71,18 +88,20 @@ function groupOverlappingTrainings(trainings: Training[]): PositionedTraining[][
 }
 
 export default function ScheduleComponent({ trainings, colors, coaches }: Props) {
-    const PIXELS_PER_MINUTE = 1.6
-    const startMinutes = 330
-    const totalMinutes = 21 * 50
-    const containerHeight = totalMinutes * PIXELS_PER_MINUTE
     const [visibleGroup, setVisibleGroup] = React.useState<PositionedTraining[] | null>(null)
+    const [visibleTraining, setVisibleTraining] = React.useState<PositionedTraining | null>(null)
+
+    function handleOpenTrainingDetails(training: PositionedTraining) {
+        setVisibleTraining(training)
+    }
 
     return (
         <ScrollView horizontal={false} style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
             <View style={{ flexDirection: 'row', marginTop: 16, minHeight: containerHeight }}>
+                {/* Coluna com as horas */}
                 <View style={{ width: 60, paddingRight: 8 }}>
                     {Array.from({ length: 22 }, (_, i) => {
-                        const totalMin = 330 + i * 50
+                        const totalMin = startMinutes + i * 50
                         const hour = Math.floor(totalMin / 60).toString().padStart(2, '0')
                         const min = (totalMin % 60).toString().padStart(2, '0')
                         return (
@@ -93,30 +112,54 @@ export default function ScheduleComponent({ trainings, colors, coaches }: Props)
                     })}
                 </View>
 
+                {/* Área dos Treinos */}
                 <View style={{ flex: 1, position: 'relative' }}>
                     {groupOverlappingTrainings(trainings).map((group, index) => (
                         <React.Fragment key={index}>
                             {group.map((item, innerIndex) => (
                                 <TrainingCard
                                     key={`${item.id}-${innerIndex}`}
-                                    group={[item]}
+                                    training={item}
+                                    onPress={() => {
+                                        if (group.length > 1) {
+                                            setVisibleGroup(group)
+                                        } else {
+                                            handleOpenTrainingDetails(item)
+                                        }
+                                    }}
                                     coaches={coaches}
-                                    onPress={() => setVisibleGroup(group)}
+                                    groupSize={group.length}
+                                    isTopCard={innerIndex === group.length - 1}
                                 />
                             ))}
                         </React.Fragment>
                     ))}
 
+                    {/* Modal de Grupo */}
                     <TrainingGroupModal
                         visibleGroup={visibleGroup}
                         onClose={() => setVisibleGroup(null)}
+                        onSelectTraining={(training) => {
+                            setVisibleGroup(null)
+                            setTimeout(() => {
+                                setVisibleTraining(training)
+                            }, 150)
+                        }}
+                        coaches={coaches}
                     />
 
+                    {/* Mensagem de vazio */}
                     {trainings.length === 0 && (
                         <Text style={{ textAlign: 'center', marginTop: 40, color: colors.muted }}>
                             Nenhum treino encontrado
                         </Text>
                     )}
+
+                    {/* Modal de Detalhes */}
+                    <TrainingDetailsModal
+                        visibleTraining={visibleTraining}
+                        onClose={() => setVisibleTraining(null)}
+                    />
                 </View>
             </View>
         </ScrollView>

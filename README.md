@@ -1,52 +1,67 @@
-# Team ZQ
 
-Aplicativo mobile desenvolvido com **React Native** para **personal trainers e equipes técnicas**, com foco em **agendamento de treinos**, **monitoramento de carga**, **bem-estar**, **lesões** e **gestão de atletas e colaboradores**.
+# Team ZQ Mobile
+
+Aplicativo mobile desenvolvido com **React Native** para **personal trainers** e **equipes técnicas**, com foco em:
+
+✅ **Agendamento de treinos**  
+✅ **Monitoramento de carga de treino**  
+✅ **Bem-estar e lesões**  
+✅ **Gestão de atletas e colaboradores**  
+✅ **Autenticação segura com JWT + Refresh Token**
 
 ---
 
-## Tecnologias Utilizadas
+## 🚀 Tecnologias Utilizadas
 
 - **React Native (Expo)**
 - **TypeScript**
 - **NativeWind** (Tailwind para React Native)
+- **React Navigation**
 - **react-native-svg-charts** (Gráficos)
-- **react-native-tab-view** (Abas de navegação)
-- **react-navigation**
-- **Zod + react-hook-form** (validações e formulários)
-- **SWR** (fetch e cache de dados mockados ou da API)
-- **Mock API / DTOs customizados**
-- Integração futura com **backend em Next.js** e banco **PostgreSQL (via Prisma)**
+- **react-native-tab-view** (Navegação por abas)
+- **Zod + React Hook Form** (Validação de formulários)
+- **SWR** (Cache de dados e fetcher)
+- **AsyncStorage** (Persistência de tokens)
+- **API personalizada com `apiFetch`** (Controle central de autenticação + refresh token)
+- Integração futura com **Next.js (backend)** e **PostgreSQL (via Prisma)**
 
 ---
 
-## Funcionalidades
+## ✅ Funcionalidades Concluídas (MVP)
 
-### Atuais (MVP)
-- [x] Lista de **atletas** com pesquisa
-- [x] Cadastro completo de atleta (foto, posição, histórico de lesões, objetivos etc.)
-- [x] Lista de **colaboradores** com busca
-- [x] Cadastro de colaboradores e seleção de cor
-- [x] Tela de **agenda** com treinos diários por colaborador
-- [x] **Filtros por data e colaborador**
-- [x] **Gráfico de carga semanal** do atleta
-- [x] Sistema de **planejamento de treino** com opção de agendamento automático
-- [x] Tela de **relatórios** por atleta e por colaborador
-
-### Em desenvolvimento
-- [ ] Login e autenticação com JWT
-- [ ] Integração com banco de dados real (PostgreSQL via Prisma)
-- [ ] Envio de e-mails automatizados
-- [ ] Sincronização em tempo real com agenda web
+- ✅ **Login com JWT**
+- ✅ **Persistência de sessão com Keep Connected**
+- ✅ **Refresh Token automático**
+- ✅ **Logout com limpeza de sessão**
+- ✅ **Proteção de rotas privadas**
+- ✅ Lista de **atletas** com pesquisa
+- ✅ Cadastro completo de atleta (foto, posição, lesões, objetivos, etc)
+- ✅ Lista de **colaboradores** com busca
+- ✅ Cadastro de colaboradores com seleção de cor
+- ✅ **Agenda diária** de treinos por colaborador
+- ✅ **Filtros por data e colaborador**
+- ✅ **Gráfico de carga semanal**
+- ✅ **Planejamento de treino com agendamento automático**
+- ✅ **Relatórios por atleta e por colaborador**
 
 ---
 
-## Como Rodar Localmente
+## 🔨 Em desenvolvimento
+
+- 🔄 **Integração com banco de dados real (PostgreSQL via Prisma)**
+- ✉️ **Envio de e-mails automatizados**
+- 🔗 **Sincronização em tempo real com a agenda web**
+- 📊 **Tratamento global de erros de API (toasts/modals)**
+
+---
+
+## ⚙️ Como Rodar Localmente
 
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/seu-usuario/fitplanner-mobile.git
-cd fitplanner-mobile
+git clone https://github.com/seu-usuario/team-zq-mobile.git
+cd team-zq-mobile
 ```
 
 2. Instale as dependências:
@@ -55,24 +70,32 @@ cd fitplanner-mobile
 pnpm install
 ```
 
+3. Configure o `.env` com a URL da sua API:
 
-3. Rode o app com Expo:
+```env
+API_URL=https://seu-backend-url/api/
+```
+
+4. Rode o app com Expo:
 
 ```bash
 npx expo start
 ```
 
-4. Escaneie o QR code com o app do Expo Go ou emulador Android/iOS:
+5. Escaneie o QR code com o app do Expo Go ou rode em um emulador.
 
+---
 
-## Estrutura Principal
+## 📂 Estrutura Principal
 
 ```text
-/src
-├── components → Componentes reutilizáveis (inputs, botões, cards, etc.)
-├── screens    → Telas principais da aplicação (Agenda, Atletas, Relatórios, etc.)
-├── mocks      → Dados simulados para desenvolvimento e testes locais
-├── hooks      → Custom Hooks (como validações, integração com contextos, SWR, etc.)
-├── utils      → Funções utilitárias reutilizáveis
-├── types      → Tipagens globais e Data Transfer Objects (DTOs)
-└── services   → Lógica de acesso à API e integração com backend
+src/
+├── components    → Componentes reutilizáveis (Inputs, Cards, Menus, etc)
+├── screens       → Telas principais da aplicação (Login, Home, Agenda, Atletas, etc)
+├── hooks         → Custom Hooks (useAuth, useTheme, useFetch etc)
+├── services      → Lógica de API (apiFetch, session-service, auth-service etc)
+├── context       → Contextos globais (Auth, Theme etc)
+├── mocks         → Dados simulados
+├── utils         → Helpers e funções auxiliares
+└── types         → Tipagens globais e DTOs
+```

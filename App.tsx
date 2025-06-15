@@ -1,11 +1,14 @@
-import 'react-native-reanimated'
-import Routes from './src/navigation'
-import { ThemeProvider } from './src/context/ThemeContext'
+import 'react-native-reanimated';
+import Routes from './src/navigation';
+import { ThemeProvider } from './src/context/theme-context';
+import { AuthProvider } from './src/context/auth-context';
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <Routes />
-    </ThemeProvider>
-  )
+    <AuthProvider>
+      <ThemeProvider>
+        <Routes />
+      </ThemeProvider>
+    </AuthProvider>
+  );
 }

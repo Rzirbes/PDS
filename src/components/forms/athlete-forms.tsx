@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Button, ScrollView } from 'react-native'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useTheme } from '../../context/ThemeContext'
+import { useTheme } from '../../context/theme-context'
 import ThemedInput from '../ui/themedInput'
 
 const schema = z.object({
@@ -39,7 +39,7 @@ export default function AthleteForm({ defaultValues, onSubmit, onCancel, submitT
     type Field = {
         name: keyof AthleteFormData
         placeholder: string
-        keyboardType?: 'default' | 'numeric' | 'email-address' 
+        keyboardType?: 'default' | 'numeric' | 'email-address'
     }
 
     const fields: Field[] = [

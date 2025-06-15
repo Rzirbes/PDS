@@ -1,11 +1,21 @@
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native'
-import { Feather } from '@expo/vector-icons'
-import { useState } from 'react'
-import { useTheme } from '../context/ThemeContext'
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { useState } from 'react';
+import { useTheme } from '../context/theme-context';
+import { useAuth } from '../context/auth-context';
 
 export default function HeaderProfileMenu() {
-    const { colors } = useTheme()
-    const [open, setOpen] = useState(false)
+    const { colors } = useTheme();
+    const { logout } = useAuth();
+    const [open, setOpen] = useState(false);
+
+    async function handleLogout() {
+        try {
+            await logout();
+        } catch (error) {
+            console.error('Erro ao fazer logout:', error);
+        }
+    }
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -14,8 +24,8 @@ export default function HeaderProfileMenu() {
                     <Feather name="menu" size={24} color={colors.primary} />
                 </TouchableOpacity>
                 <Text style={[styles.title, { color: colors.text }]}>My Dashboard</Text>
-
             </View>
+
             <Image
                 source={{ uri: 'https://i.pravatar.cc/100' }}
                 style={styles.avatar}
@@ -32,14 +42,14 @@ export default function HeaderProfileMenu() {
                     <TouchableOpacity style={styles.menuItem}>
                         <Text style={[styles.menuText, { color: colors.text }]}>Configurações</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.menuItem}>
+                    <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
                         <Feather name="log-out" size={16} color={colors.text} style={{ marginRight: 8 }} />
                         <Text style={[styles.menuText, { color: colors.text }]}>Sair</Text>
                     </TouchableOpacity>
                 </View>
             )}
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
@@ -90,4 +100,4 @@ const styles = StyleSheet.create({
     menuText: {
         fontSize: 14,
     },
-})
+});

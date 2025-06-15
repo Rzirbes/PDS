@@ -1,0 +1,66 @@
+import { API_URL } from '@env';
+import { getAccessToken, refreshSession } from './session-service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+async function logoutAndThrow(): Promise<never> {
+    await AsyncStorage.removeItem('accessToken');
+    await AsyncStorage.removeItem('refreshToken');
+    throw new Error('Sessão expirada. Faça login novamente.');
+}
+
+export async function apiFetch<TResponse = any>(
+    path: string,
+    options: RequestInit = {},
+    retry = true
+): Promise<TResponse> {
+    let token = await getAccessToken();
+
+    const baseHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    const finalHeaders = {
+        ...baseHeaders,
+        ...(options.headers && typeof options.headers === 'object' && !(options.headers instanceof Headers)
+            ? (options.headers as Record<string, string>)
+            : {}),
+    };
+
+    const response = await fetch(`${API_URL}${path}`, {
+        ...options,
+        headers: finalHeaders,
+    });
+
+    if (response.status === 401 && retry) {
+        console.warn('Token expirado. Tentando refresh...');
+        const newToken = await refreshSession();
+
+        if (newToken) {
+            return apiFetch<TResponse>(path, options, false);
+        } else {
+            console.warn('Refresh falhou. Fazendo logout.');
+            return await logoutAndThrow();
+        }
+    }
+
+    if (!response.ok) {
+        let errorMessage = 'Erro desconhecido';
+        try {
+            const contentType = response.headers.get('content-type');
+            if (contentType?.includes('application/json')) {
+                const errorBody = await response.json();
+                errorMessage = errorBody?.message || errorMessage;
+            }
+        } catch (parseError) {
+            console.warn('Erro ao tentar parsear resposta de erro da API:', parseError);
+        }
+        throw new Error(errorMessage);
+    }
+
+    if (response.status === 204) {
+        return {} as TResponse;
+    }
+
+    return response.json();
+}

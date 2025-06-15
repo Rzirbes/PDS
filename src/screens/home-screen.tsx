@@ -2,7 +2,7 @@ import { View, Text, StyleSheet } from 'react-native'
 import DashboardCard from '../components/dashboard-card'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../context/theme-context'
 import HeaderProfileMenu from '../components/header-profile-menu'
 import { RootStackParamList } from '../navigation/types'
 

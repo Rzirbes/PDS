@@ -1,7 +1,7 @@
 import { View, TextInput, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../context/theme-context'
 
 type Props = {
     placeholder?: string

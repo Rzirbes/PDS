@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import type { Entity } from '../types/entity'
 import { getEntityItemStyles } from '../styles/entity-item-styles'
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../context/theme-context'
 
 type Props = {
     item: Entity
@@ -26,6 +26,6 @@ export default function EntityItemCard({ item, onPress }: Props) {
             >
                 {item.status}
             </Text>
-        </TouchableOpacity> 
+        </TouchableOpacity>
     )
 }

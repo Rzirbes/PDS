@@ -10,29 +10,47 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Alert,
+  ActivityIndicator,
 } from 'react-native'
 import { Eye, EyeOff } from 'lucide-react-native'
 import type { RootStackParamList } from '../navigation/types'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { useTheme } from '../context/ThemeContext'
-import { mockLogin } from '../lib/actions/mock-login'
+import { useTheme } from '../context/theme-context'
+import { saveSession } from '../services/session-service'
+import { login } from '../services/auth-service'
+import { useAuth } from '../context/auth-context'
+
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [keepConnected, setKeepConnected] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
   const { colors } = useTheme()
+  const { setToken } = useAuth();
 
   async function handleLogin() {
-    const result = await mockLogin({ email, password })
+    if (!email || !password) {
+      Alert.alert('Erro', 'Preencha e-mail e senha.')
+      return
+    }
 
-    if (result.success) {
-      console.log('Token:', result.token)
-      navigation.navigate('Home')
-    } else {
-      Alert.alert('Erro', result.error)
+    setLoading(true)
+
+    try {
+      const data = await login(email, password);
+      await saveSession(data.token, data.refreshToken, keepConnected);
+      console.log('Login OK, token salvo:', data.token);
+      setToken(data.token);
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+      Alert.alert('Erro', 'Falha no login. Verifique suas credenciais.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -51,6 +69,7 @@ export default function LoginScreen() {
             style={[styles.input, { borderColor: colors.muted, color: colors.text }]}
             value={email}
             onChangeText={setEmail}
+            autoCapitalize="none"
           />
         </View>
 
@@ -88,8 +107,13 @@ export default function LoginScreen() {
         <TouchableOpacity
           style={[styles.loginButton, { backgroundColor: colors.primary }]}
           onPress={handleLogin}
+          disabled={loading}
         >
-          <Text style={styles.loginButtonText}>Entrar</Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.loginButtonText}>Entrar</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity>
@@ -157,6 +181,8 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 12,
     marginBottom: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loginButtonText: {
     color: '#fff',

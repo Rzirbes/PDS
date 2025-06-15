@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import SearchBar from './search-bar'
 import GenericList from './list'
 import FloatingActionButton from './floating-button'
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../context/theme-context'
 
 type Props<T> = {
     title?: string
