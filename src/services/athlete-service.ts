@@ -1,5 +1,16 @@
 import { apiFetch } from "./api";
 
+export interface Address {
+    street?: string;
+    neighborhood?: string;
+    buildingNumber?: string;  // Corrigido: vem como buildingNumber do backend
+    complement?: string;
+    zipCode?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+}
+
 export interface AthleteDetails {
     id: string;
     name: string;
@@ -16,6 +27,8 @@ export interface AthleteDetails {
     dominantFoot?: string;
     positions?: string[];
     isMonitorDaily?: boolean;
+    observation?: string;
+    address?: Address;
 }
 
 export interface Athlete {
@@ -31,4 +44,11 @@ export async function getAthletes(): Promise<{ data: Athlete[] }> {
 
 export async function getAthleteById(uuid: string): Promise<AthleteDetails> {
     return await apiFetch<AthleteDetails>(`/athletes/${uuid}`);
+}
+
+export async function updateAthlete(uuid: string, data: any) {
+    return await apiFetch(`/athletes/${uuid}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
 }

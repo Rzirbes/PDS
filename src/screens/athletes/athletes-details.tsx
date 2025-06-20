@@ -11,7 +11,8 @@ import { FormSection } from '../../components/ui/form-section';
 import { RootStackParamList } from '../../navigation/types';
 import { useAthleteById } from '../../hooks/use-athlete';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, ChevronLeft, Feather } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
+import { updateAthlete } from '../../services/athlete-service';
 
 const schema = z.object({
   name: z.string().min(1),
@@ -28,6 +29,15 @@ const schema = z.object({
   goal: z.string().optional(),
   dominantFoot: z.string().optional(),
   positions: z.array(z.string()).optional(),
+  description: z.string().optional(),
+  country: z.string().optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
+  zipCode: z.string().optional(),
+  street: z.string().optional(),
+  number: z.string().optional(),
+  neighborhood: z.string().optional(),
+  complement: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -38,7 +48,7 @@ export default function EditAthleteScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'EditAthlete'>>();
   const { athleteId } = route.params;
 
-  const { athlete, isLoading } = useAthleteById(athleteId);
+  const { athlete, isLoading, updateAthlete: updateAthleteCache } = useAthleteById(athleteId);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -57,6 +67,15 @@ export default function EditAthleteScreen() {
       goal: '',
       dominantFoot: '',
       positions: [],
+      description: '',
+      country: '',
+      state: '',
+      city: '',
+      zipCode: '',
+      street: '',
+      number: '',
+      neighborhood: '',
+      complement: '',
     },
   });
 
@@ -69,9 +88,7 @@ export default function EditAthleteScreen() {
         email: athlete.email ?? '',
         cpf: athlete.cpf ?? '',
         phone: athlete.phone ?? '',
-        birthday: athlete.birthday
-          ? new Date(athlete.birthday).toISOString().split('T')[0]
-          : '',
+        birthday: athlete.birthday ? new Date(athlete.birthday).toISOString().split('T')[0] : '',
         height: athlete.height !== undefined ? String(athlete.height) : '',
         weight: athlete.weight !== undefined ? String(athlete.weight) : '',
         isEnabled: athlete.isEnabled ?? false,
@@ -81,46 +98,57 @@ export default function EditAthleteScreen() {
         goal: athlete.goal ?? '',
         dominantFoot: athlete.dominantFoot ?? '',
         positions: athlete.positions ?? [],
+        description: athlete.observation ?? '',
+
+        street: athlete.address?.street ?? '',
+        neighborhood: athlete.address?.neighborhood ?? '',
+        number: athlete.address?.buildingNumber ?? '',
+        complement: athlete.address?.complement ?? '',
+        zipCode: athlete.address?.zipCode ?? '',
+        city: athlete.address?.city ?? '',
+        state: athlete.address?.state ?? '',
+        country: athlete.address?.country ?? '',
       });
     }
   }, [athlete, reset]);
 
-  if (isLoading || !athlete) {
-    return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
-        <Text style={{ color: colors.text }}>Carregando atleta...</Text>
-      </SafeAreaView>
-    );
-  }
-
   async function onSubmit(values: FormData) {
-    console.log('Dados submetidos:', values);
-    showMessage({
-      message: 'Sucesso',
-      description: 'Simulação de envio. Conecte com backend para persistir!',
-      type: 'success',
-    });
-    navigation.goBack();
-  }
+    const addressPayload = {
+      street: values.street,
+      neighborhood: values.neighborhood,
+      buildingNumber: values.number, // Aqui mapeia de volta
+      complement: values.complement,
+      zipCode: values.zipCode,
+      city: values.city,
+      state: values.state,
+      country: values.country,
+    };
 
-  const inputFields = [
-    { name: 'name', label: 'Nome', placeholder: 'Nome' },
-    { name: 'email', label: 'Email', placeholder: 'Email' },
-    { name: 'cpf', label: 'CPF', placeholder: 'CPF' },
-    { name: 'phone', label: 'Telefone', placeholder: 'Telefone' },
-    { name: 'birthday', label: 'Data de nascimento', placeholder: 'AAAA-MM-DD' },
-    { name: 'height', label: 'Altura', placeholder: 'Ex: 1.75' },
-    { name: 'weight', label: 'Peso', placeholder: 'Ex: 70' },
-    { name: 'bestSkill', label: 'Melhor habilidade', placeholder: 'Ex: Visão de jogo' },
-    { name: 'worstSkill', label: 'Pior habilidade', placeholder: 'Ex: Finalização' },
-    { name: 'goal', label: 'Objetivo', placeholder: 'Ex: Melhorar força' },
-    { name: 'dominantFoot', label: 'Pé dominante', placeholder: 'Ex: Direito / Esquerdo' },
-    // Positions → futuro: multiselect
-  ];
+    const payloadToSend = {
+      ...values,
+      address: addressPayload,
+    };
+
+    try {
+      await updateAthleteCache(payloadToSend);
+      showMessage({
+        message: 'Sucesso',
+        description: 'Atleta atualizado com sucesso!',
+        type: 'success',
+      });
+      navigation.goBack();
+    } catch {
+      showMessage({
+        message: 'Erro',
+        description: 'Falha ao atualizar atleta.',
+        type: 'danger',
+      });
+    }
+  }
 
   function renderInputs(fields: string[]) {
     return fields.map((fieldName) => {
-      const field = inputFields.find((f) => f.name === fieldName);
+      const field = inputFields.find(f => f.name === fieldName);
       if (!field) return null;
       return (
         <View key={field.name} style={{ marginBottom: 12 }}>
@@ -141,18 +169,51 @@ export default function EditAthleteScreen() {
     });
   }
 
+  const inputFields = [
+    { name: 'name', label: 'Nome', placeholder: 'Nome' },
+    { name: 'email', label: 'Email', placeholder: 'Email' },
+    { name: 'cpf', label: 'CPF', placeholder: 'CPF' },
+    { name: 'phone', label: 'Telefone', placeholder: 'Telefone' },
+    { name: 'birthday', label: 'Data de nascimento', placeholder: 'AAAA-MM-DD' },
+    { name: 'height', label: 'Altura (em metros)', placeholder: 'Ex: 1.75' },
+    { name: 'weight', label: 'Peso (kg)', placeholder: 'Ex: 70' },
+    { name: 'bestSkill', label: 'Melhor Qualidade', placeholder: 'Ex: Visão de jogo' },
+    { name: 'worstSkill', label: 'Maio Defeito', placeholder: 'Ex: Finalização' },
+    { name: 'goal', label: 'Objetivo', placeholder: 'Ex: Melhorar força' },
+    { name: 'dominantFoot', label: 'Pé dominante', placeholder: 'Ex: Direito / Esquerdo' },
+    { name: 'description', label: 'Observações', placeholder: 'Observações sobre o atleta' },
+    { name: 'country', label: 'País', placeholder: 'Ex: Brasil' },
+    { name: 'state', label: 'Estado', placeholder: 'Ex: RS' },
+    { name: 'city', label: 'Cidade', placeholder: 'Ex: Porto Alegre' },
+    { name: 'zipCode', label: 'CEP', placeholder: 'Ex: 00000-000' },
+    { name: 'street', label: 'Rua', placeholder: 'Ex: Rua das Flores' },
+    { name: 'number', label: 'Número', placeholder: 'Ex: 123' },
+    { name: 'neighborhood', label: 'Bairro', placeholder: 'Ex: Centro' },
+    { name: 'complement', label: 'Complemento', placeholder: 'Ex: Apt 101' },
+  ];
+
+  if (isLoading || !athlete) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <Text style={{ color: colors.text }}>Carregando atleta...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <ChevronLeft color={colors.primary} size={24} />
       </TouchableOpacity>
-      <ScrollView style={[styles.container]}>
+      <ScrollView style={styles.container}>
 
         <Text style={[styles.title, { color: colors.text }]}>Editar atleta</Text>
 
         <FormSection title="Dados Pessoais">
           {renderInputs(['name', 'email', 'cpf', 'phone', 'birthday'])}
+        </FormSection>
 
+        <FormSection title="Status">
           <View style={{ marginBottom: 12 }}>
             <Text style={{ color: colors.text, marginBottom: 4 }}>Ativo no sistema</Text>
             <Controller
@@ -176,8 +237,12 @@ export default function EditAthleteScreen() {
           </View>
         </FormSection>
 
-        <FormSection title="Detalhes Técnicos e Físicos">
-          {renderInputs(['height', 'weight', 'dominantFoot'])}
+        <FormSection title="Características">
+          {renderInputs(['dominantFoot', 'positions', 'height', 'weight', 'bestSkill', 'worstSkill', 'goal', 'description'])}
+        </FormSection>
+
+        <FormSection title="Endereço do Atleta">
+          {renderInputs(['country', 'state', 'city', 'zipCode', 'street', 'number', 'neighborhood', 'complement'])}
         </FormSection>
 
         <FormSection title="Histórico Clínico">
@@ -210,7 +275,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   backButton: {
-    marginRight: 12,
-    marginLeft:16
+    marginTop: 12,
+    marginLeft: 16,
   },
 });
