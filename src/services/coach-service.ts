@@ -3,6 +3,7 @@ import { apiFetch } from './api';
 
 export interface Coach {
     id: number;
+    uuid: string;
     name: string;
     email: string;
     isEnabled: boolean;
@@ -13,9 +14,6 @@ export interface GetCoachesResponse {
     data: Coach[];
 }
 
-export async function getCoaches(): Promise<GetCoachesResponse> {
-    return apiFetch('coaches');
-}
 
 export interface CoachDetails {
     id: number;
@@ -24,18 +22,22 @@ export interface CoachDetails {
     role: string;
     phone?: string;
     address?: {
-        cep?: string;
+        zipCode ?: string;
         street?: string;
-        number?: string;
+        buildingNumber ?: string;
         neighborhood?: string;
         complement?: string;
-        country?: string;
-        state?: string;
-        city?: string;
+        countryId?: string;
+        stateId?: string;
+        cityId?: string;
     };
     schedulerColor?: string;
 }
 
+export async function getCoaches(): Promise<GetCoachesResponse> {
+    return apiFetch<GetCoachesResponse>('coaches');
+}
+
 export async function getCoachById(uuid: string): Promise<CoachDetails> {
-    return apiFetch(`coaches/${uuid}`);
+    return apiFetch<CoachDetails>(`coaches/${uuid}`);
 }

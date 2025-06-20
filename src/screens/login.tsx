@@ -15,10 +15,10 @@ import {
 import { Eye, EyeOff } from 'lucide-react-native'
 import type { RootStackParamList } from '../navigation/types'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { useTheme } from '../context/theme-context'
 import { saveSession } from '../services/session-service'
 import { login } from '../services/auth-service'
 import { useAuth } from '../context/auth-context'
+import { useTheme } from '../context/theme-context'
 
 
 export default function LoginScreen() {
@@ -52,6 +52,7 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
+
   }
 
   return (

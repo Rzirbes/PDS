@@ -10,6 +10,7 @@ import HeaderWithBack from '../../components/atheltes/header-with-back'
 import EditAthleteScreen from '../../components/atheltes/athletes-details'
 import { useValidatedAthletes } from '../../hooks/use-validate-athletes'
 import MonitoringContainer from '../../components/charts/monitoring-container'
+import { useAthleteById, useAthletes } from '../../hooks/use-athlete'
 
 type AthleteDetailsRouteProp = RouteProp<RootStackParamList, 'AthleteDetails'>
 type RouteType = {
@@ -23,8 +24,7 @@ export default function AthleteDetailsScreen() {
     const { colors } = useTheme()
     const { athleteId } = route.params
 
-    const { athletes, isLoading } = useValidatedAthletes()
-    const athlete = athletes.find((a) => String(a.id) === athleteId)
+    const { athlete, isLoading } = useAthleteById(athleteId);
 
     const [index, setIndex] = useState(0)
     const [routes] = useState<RouteType[]>([
@@ -49,7 +49,7 @@ export default function AthleteDetailsScreen() {
     )
 
     const renderScene = SceneMap({
-        monitoramento: () => <MonitoringContainer />,
+        monitoramento: () => <MonitoringContainer athleteId={athleteId} />,
         planejados: () => (
             <View style={{ padding: 16 }}>
                 <Text style={{ color: colors.text }}>🗓️ Treinos planejados</Text>
@@ -65,14 +65,22 @@ export default function AthleteDetailsScreen() {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-            <HeaderWithBack title={athlete ? athlete.name : 'Carregando...'} />
-            <TabView
-                navigationState={{ index, routes }}
-                renderScene={renderScene}
-                onIndexChange={setIndex}
-                initialLayout={{ width: layout.width }}
-                renderTabBar={renderTabBar}
-            />
+            {isLoading || !athlete ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ color: colors.text }}>Carregando informações do atleta...</Text>
+                </View>
+            ) : (
+                <>
+                    <HeaderWithBack title={athlete.name} />
+                    <TabView
+                        navigationState={{ index, routes }}
+                        renderScene={renderScene}
+                        onIndexChange={setIndex}
+                        initialLayout={{ width: layout.width }}
+                        renderTabBar={renderTabBar}
+                    />
+                </>
+            )}
         </SafeAreaView>
-    )
+    );
 }

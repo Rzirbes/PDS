@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
-import { useTheme } from '../context/theme-context';
 import { useAuth } from '../context/auth-context';
+import { useTheme } from '../context/theme-context';
 
 export default function HeaderProfileMenu() {
     const { colors } = useTheme();

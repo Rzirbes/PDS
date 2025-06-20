@@ -1,20 +1,34 @@
-import React from 'react';
-import { View, Text, ViewStyle } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ViewStyle } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../../context/theme-context';
 
 interface Props {
     title: string;
     children: React.ReactNode;
     style?: ViewStyle;
+    initialOpen?: boolean;
 }
 
-export function FormSection({ title, children, style }: Props) {
+export function FormSection({ title, children, style, initialOpen = true }: Props) {
     const { colors } = useTheme();
+    const [isOpen, setIsOpen] = useState(initialOpen);
 
     return (
         <View style={[{ marginBottom: 16 }, style]}>
-            <Text style={{ fontWeight: 'bold', color: colors.text, marginBottom: 8 }}>{title}</Text>
-            {children}
+            <TouchableOpacity
+                onPress={() => setIsOpen(!isOpen)}
+                style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}
+            >
+                <Text style={{ fontWeight: 'bold', color: colors.text, flex: 1 }}>{title}</Text>
+                <Feather
+                    name={isOpen ? 'chevron-up' : 'chevron-down'}
+                    size={20}
+                    color={colors.text}
+                />
+            </TouchableOpacity>
+
+            {isOpen && children}
         </View>
     );
 }

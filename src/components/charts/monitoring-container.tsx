@@ -1,50 +1,47 @@
-import React, { useState } from 'react'
-import { View, ScrollView, Text, TouchableOpacity, StyleSheet } from 'react-native'
-import { format, addWeeks, subWeeks, startOfWeek, endOfWeek } from 'date-fns'
-import { WeekLoadChart } from './week-load-chart'
-import { DailyLoadChart } from './daily-load-chart'
-import { DailyDurationChart } from './daily-duration-chart'
-import Ionicons from '@expo/vector-icons/build/Ionicons'
+import React, { useState } from 'react';
+import { View, ScrollView, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { format, addWeeks, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
+import { WeekLoadChart } from './week-load-chart';
+import { DailyLoadChart } from './daily-load-chart';
+import { DailyDurationChart } from './daily-duration-chart';
+import Ionicons from '@expo/vector-icons/build/Ionicons';
+import { useWeekMonitoring } from '../../hooks/use-week-monitoring';
+import { useMonotonyMonitoring } from '../../hooks/use-monotony-monitoring';
 
-export default function MonitoringContainer() {
-    const [currentDate, setCurrentDate] = useState(new Date())
+interface Props {
+    athleteId: string;
+}
 
-    const start = startOfWeek(currentDate, { weekStartsOn: 0 })
-    const end = endOfWeek(currentDate, { weekStartsOn: 0 })
-    const formattedRange = `${format(start, 'dd/MM/yyyy')} - ${format(end, 'dd/MM/yyyy')}`
+export default function MonitoringContainer({ athleteId }: Props) {
+    const [currentDate, setCurrentDate] = useState(new Date());
+
+    const start = startOfWeek(currentDate, { weekStartsOn: 0 });
+    const end = endOfWeek(currentDate, { weekStartsOn: 0 });
+
+    const { data: weekMonitoring, isLoading: isLoadingWeek } = useWeekMonitoring({
+        athleteUuid: athleteId,
+        startDate: format(start, 'yyyy-MM-dd'),
+        endDate: format(end, 'yyyy-MM-dd'),
+    });
+
+    const { data: monotonyMonitoring, isLoading: isLoadingMonotony } = useMonotonyMonitoring({
+        athleteUuid: athleteId,
+        startDate: format(start, 'yyyy-MM-dd'),
+        endDate: format(end, 'yyyy-MM-dd'),
+    });
+
+    const formattedRange = `${format(start, 'dd/MM/yyyy')} - ${format(end, 'dd/MM/yyyy')}`;
 
     function goToPreviousWeek() {
-        setCurrentDate((prev) => subWeeks(prev, 1))
+        setCurrentDate((prev) => subWeeks(prev, 1));
     }
 
     function goToNextWeek() {
-        setCurrentDate((prev) => addWeeks(prev, 1))
+        setCurrentDate((prev) => addWeeks(prev, 1));
     }
 
-    // Aqui você substituiria pelos dados reais conforme a semana
-    const weekMonitoringResponse = {
-        days: [start, addWeeks(start, 1), addWeeks(start, 2), addWeeks(start, 3), addWeeks(start, 4)],
-        PSRs: [205, 2003, 1085, 21, 143],
-        durations: {
-            planned: [2800, 3000, 0, 3200, 2500],
-            performed: [0, 0, 0, 600, 2100],
-        },
-        trainings: { planned: [], performed: [] },
-        PSEs: {
-            planned: [100, 100, 2060, 20, 3075],
-            performed: [112, 193, 3500, 193, 193],
-        },
-    }
-
-    const monotonyMonitoringResponse = {
-        week: ['2025-W19', '2025-W20', '2025-W21', '2025-W22', '2025-W23'],
-        monotony: [21, 2003, 1085, 205, 143],
-        strain: [100, 2060, 20, 193, 3075],
-        acuteChronicLoadRatio: [112, 193, 2000, 193, 193],
-        load: {
-            planned: [2800, 3000, 0, 3200, 2500],
-            performed: [0, 0, 0, 600, 2100],
-        },
+    if (isLoadingWeek || isLoadingMonotony || !weekMonitoring || !monotonyMonitoring) {
+        return <Text>Carregando...</Text>;
     }
 
     return (
@@ -63,11 +60,11 @@ export default function MonitoringContainer() {
                 </TouchableOpacity>
             </View>
 
-            <WeekLoadChart data={monotonyMonitoringResponse} />
-            <DailyLoadChart data={weekMonitoringResponse} />
-            <DailyDurationChart data={weekMonitoringResponse} />
+            <WeekLoadChart data={monotonyMonitoring} />
+            {/* <DailyLoadChart data={weekMonitoring} /> */}
+            {/* <DailyDurationChart data={weekMonitoring} /> */}
         </ScrollView>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
@@ -99,6 +96,6 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: '500',
         fontSize: 14,
-        paddingHorizontal: 10
+        paddingHorizontal: 10,
     },
-})
+});

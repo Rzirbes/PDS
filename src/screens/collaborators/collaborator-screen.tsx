@@ -4,14 +4,15 @@ import EntityItemCard from '../../components/entity-item-card'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { RootStackParamList } from '../../navigation/types'
+import { Entity, EntityStatus } from '../../types/entity'
+import { Coach } from '../../services/coach-service'
 import { useValidatedCoaches } from '../../hooks/use-validate-coaches'
-import { EntityStatus } from '../../types/entity'
 
 export default function CollaboratorsScreen() {
     const { coaches, isLoading } = useValidatedCoaches()
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 
-    const listData = coaches.map((coach) => ({
+    const listData = coaches.map((coach: Coach) => ({
         id: String(coach.id),
         name: coach.name,
         email: coach.email,
@@ -19,7 +20,7 @@ export default function CollaboratorsScreen() {
     }))
 
     return (
-        <EntityListScreen
+        <EntityListScreen<Entity>
             title="Colaboradores"
             placeholder="Buscar por colaborador..."
             data={listData}

@@ -1,28 +1,63 @@
-import React from 'react'
-import { ScrollView, Text, ActivityIndicator } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useTheme } from '../../context/theme-context'
-import { FormSection } from '../../components/ui/form-section'
-import { LabeledInput } from '../../components/ui/labeled-input'
-import { useRoute } from '@react-navigation/native'
-import { useCoachById } from '../../hooks/use-coach-by-id'
-import { RootStackParamList } from '../../navigation/types'
-import { NativeStackScreenProps } from '@react-navigation/native-stack'
+import React, { useState, useEffect } from 'react';
+import { ScrollView, Text, ActivityIndicator, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { FormSection } from '../../components/ui/form-section';
+import { LabeledInput } from '../../components/ui/labeled-input';
+import { useRoute } from '@react-navigation/native';
+import { useCoachById } from '../../hooks/use-coach-by-id';
+import { RootStackParamList } from '../../navigation/types';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import LocationPickerGroup from '../../components/ui/location-picker-group';
+import { useTheme } from '../../context/theme-context';
+import { mutate } from 'swr';
+import { useCitiesByState, useStatesByCountry } from '../../hooks/use-countries';
+import { ColorPickerModal } from '../../components/ui/color-picker-modal';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'CollaboratorDetails'>
+type Props = NativeStackScreenProps<RootStackParamList, 'CollaboratorDetails'>;
 
 export default function CollaboratorInfoScreen() {
-    const { colors } = useTheme()
-    const route = useRoute<Props['route']>()
-    const { coachId } = route.params
-    const { coach, isLoading, isError } = useCoachById(coachId)
+    const { colors } = useTheme();
+    const route = useRoute<Props['route']>();
+    const { coachId } = route.params;
+    const { coach, isLoading, isError } = useCoachById(coachId);
 
-    if (isLoading) {
+    const [countryId, setCountryId] = useState<string | null>(null);
+    const [stateId, setStateId] = useState<string | null>(null);
+    const [cityId, setCityId] = useState<string | null>(null);
+    const [calendarColor, setCalendarColor] = useState<string>('#624f96');
+
+    const { data: states, isLoading: isLoadingStates } = useStatesByCountry(countryId);
+    const { data: cities, isLoading: isLoadingCities } = useCitiesByState(stateId);
+
+    const isLocationDataLoading =
+        (countryId && isLoadingStates) ||
+        (stateId && isLoadingCities);
+
+    useEffect(() => {
+        if (coach) {
+            setCountryId(coach.address?.countryId ?? null);
+            setStateId(coach.address?.stateId ?? null);
+            setCityId(coach.address?.cityId ?? null);
+
+            if (coach.schedulerColor) {
+                setCalendarColor(coach.schedulerColor);
+            }
+
+            if (coach.address?.countryId) {
+                mutate(`states-${coach.address.countryId}`);
+            }
+            if (coach.address?.stateId) {
+                mutate(`cities-${coach.address.stateId}`);
+            }
+        }
+    }, [coach]);
+
+    if (isLoading || isLocationDataLoading) {
         return (
             <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color={colors.primary} />
             </SafeAreaView>
-        )
+        );
     }
 
     if (isError || !coach) {
@@ -30,7 +65,7 @@ export default function CollaboratorInfoScreen() {
             <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <Text style={{ color: colors.text }}>Erro ao carregar detalhes do colaborador.</Text>
             </SafeAreaView>
-        )
+        );
     }
 
     return (
@@ -48,26 +83,37 @@ export default function CollaboratorInfoScreen() {
                 </FormSection>
 
                 <FormSection title="Endereço">
-                    {[
-                        { label: 'CEP', value: coach.address?.cep },
-                        { label: 'Rua', value: coach.address?.street },
-                        { label: 'Número', value: coach.address?.number },
-                        { label: 'Bairro', value: coach.address?.neighborhood },
-                        { label: 'Complemento', value: coach.address?.complement },
-                        { label: 'País', value: coach.address?.country },
-                        { label: 'Estado', value: coach.address?.state },
-                        { label: 'Cidade', value: coach.address?.city },
-                    ].map((field) => (
-                        <LabeledInput key={field.label} label={field.label} value={field.value ?? ''} />
-                    ))}
+                    <LabeledInput label="CEP" value={coach.address?.zipCode ?? ''} />
+                    <LabeledInput label="Rua" value={coach.address?.street ?? ''} />
+                    <LabeledInput label="Número" value={coach.address?.buildingNumber ?? ''} />
+                    <LabeledInput label="Bairro" value={coach.address?.neighborhood ?? ''} />
+                    <LabeledInput label="Complemento" value={coach.address?.complement ?? ''} />
+
+                    <LocationPickerGroup
+                        selectedCountryId={countryId}
+                        selectedStateId={stateId}
+                        selectedCityId={cityId}
+                        onCountryChange={setCountryId}
+                        onStateChange={setStateId}
+                        onCityChange={setCityId}
+                    />
                 </FormSection>
 
                 <FormSection title="Configurações">
-                    <Text style={{ color: colors.text }}>
-                        Cor do calendário: {coach.schedulerColor ?? 'Não definida'}
-                    </Text>
+                    <Text style={{ color: colors.text, marginBottom: 8 }}>Cor do calendário</Text>
+                    <View
+                        style={{
+                            height: 40,
+                            borderRadius: 6,
+                            justifyContent: 'center',
+                            paddingHorizontal: 12,
+                            backgroundColor: calendarColor,
+                        }}
+                    >
+
+                    </View>
                 </FormSection>
             </ScrollView>
         </SafeAreaView>
-    )
+    );
 }

@@ -5,12 +5,10 @@ import { View, Text, FlatList, TouchableOpacity, ScrollView, Dimensions } from '
 import { mockCoaches, mockSchedules, mockTrainingPlannings } from '../../mock'
 import { generateWeeklyIntervalsForMonth } from '../../utils/date-utils'
 import { format } from 'date-fns'
-import RNPickerSelect from 'react-native-picker-select'
-import { useTheme } from '../../context/theme-context'
-import { ptBR } from 'date-fns/locale'
 import WeekDaySelector from '../../components/schedule/week-day-selector'
 import ScheduleComponent from '../../components/schedule/schedule-component'
 import CollaboratorPicker from '../../components/ui/collaborator-picker'
+import { useTheme } from '../../context/theme-context'
 
 interface Training {
     id: string
