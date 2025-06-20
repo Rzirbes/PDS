@@ -13,6 +13,9 @@ export interface AthleteDetails {
     bestSkill?: string;
     worstSkill?: string;
     goal?: string;
+    dominantFoot?: string;
+    positions?: string[];
+    isMonitorDaily?: boolean;
 }
 
 export interface Athlete {

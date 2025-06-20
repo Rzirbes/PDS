@@ -11,6 +11,7 @@ import { RootStackParamList } from './types';
 import LoadingScreen from '../screens/loadin-screen';
 import { useAuth } from '../context/auth-context';
 import CollaboratorInfoScreen from '../screens/collaborators/collaborator-info-screen.tsx';
+import EditAthleteScreen from '../screens/athletes/athletes-details';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -29,6 +30,7 @@ export default function Routes() {
                         <Stack.Screen name="Home" component={HomeScreen} />
                         <Stack.Screen name="Athletes" component={AthletesScreen} />
                         <Stack.Screen name="AthleteDetails" component={AthleteDetailsScreen} />
+                        <Stack.Screen name="EditAthlete" component={EditAthleteScreen} />
                         <Stack.Screen name="Collaborators" component={CollaboratorsScreen} />
                         <Stack.Screen name="Trainings" component={TrainningTypesScreen} />
                         <Stack.Screen name="Schedule" component={ScheduleScreen} />
