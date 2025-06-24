@@ -5,6 +5,9 @@ import { format, parseISO } from 'date-fns';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
+import { Club } from '../../services/club-service';
+import { AthleteDetails } from '../../services/athlete-service';
+import { BodySideLabel, BooleanLabel, InjuryContextLabel, InjuryDegreeLabel } from '../../enums/injury';
 
 type Injury = {
     id: string;
@@ -28,23 +31,19 @@ type Pain = {
     description: string;
 };
 
+export interface Address {
+    street?: string;
+    neighborhood?: string;
+    buildingNumber?: string;
+    complement?: string;
+    zipCode?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+}
+
 type Props = {
-    athlete?: {
-        id: string;
-        name: string;
-        email?: string;
-        cpf?: string;
-        phone?: string;
-        birthday?: string;
-        height?: number;
-        weight?: number;
-        isEnabled?: boolean;
-        isMonitorDaily?: boolean;
-        dominantFoot?: string;
-        positions?: string[];
-        injuries?: Injury[];
-        pains?: Pain[];
-    };
+    athlete?: AthleteDetails
 };
 
 export default function AthleteInfoScreen({ athlete }: Props) {
@@ -81,6 +80,41 @@ export default function AthleteInfoScreen({ athlete }: Props) {
                     <InfoItem label="Peso" value={athlete.weight ? `${athlete.weight} kg` : '-'} />
                     <InfoItem label="Pé dominante" value={athlete.dominantFoot} />
                     <InfoItem label="Posições" value={athlete.positions?.join(', ')} />
+                </FormSection>
+            </View>
+
+            {/* Endereço do Atleta */}
+            <View style={[styles.sectionCard, { borderColor: colors.muted }]}>
+                <FormSection title="Endereço do Atleta">
+                    {athlete.address ? (
+                        <>
+                            <InfoItem label="Rua" value={athlete.address.street} />
+                            <InfoItem label="Número" value={athlete.address.buildingNumber} />
+                            <InfoItem label="Bairro" value={athlete.address.neighborhood} />
+                            <InfoItem label="Complemento" value={athlete.address.complement} />
+                            <InfoItem label="CEP" value={athlete.address.zipCode} />
+                            <InfoItem label="Cidade" value={athlete.address.city} />
+                            <InfoItem label="Estado" value={athlete.address.state} />
+                            <InfoItem label="País" value={athlete.address.country} />
+                        </>
+                    ) : (
+                        <Text style={[styles.emptyText, { color: colors.text }]}>Nenhum endereço cadastrado.</Text>
+                    )}
+                </FormSection>
+            </View>
+
+            <View style={[styles.sectionCard, { borderColor: colors.muted }]}>
+                <FormSection title="Histórico de Clubes">
+                    {athlete.clubs && athlete.clubs.length > 0 ? (
+                        athlete.clubs.map((club) => (
+                            <View key={club.clubId} style={[styles.subCard, { borderColor: colors.primary }]}>
+                                <InfoItem label="Nome do clube" value={club.name} />
+                                <InfoItem label="Data de entrada" value={formatDate(club.startDate)} />
+                            </View>
+                        ))
+                    ) : (
+                        <Text style={[styles.emptyText, { color: colors.text }]}>Nenhum clube registrado.</Text>
+                    )}
                 </FormSection>
             </View>
 
@@ -145,8 +179,21 @@ function renderObjectAsInfoItems(
 ) {
     return fields.map(({ key, label, isDate }) => {
         let value = obj[key];
-        if (isDate && value) value = formatDate(value);
+
+        if (isDate && value) {
+            value = formatDate(value);
+        } else if (key === 'bodySide' && value) {
+            value = BodySideLabel[value] ?? value;
+        } else if (key === 'degree' && value) {
+            value = InjuryDegreeLabel[value] ?? value;
+        } else if (key === 'occurredDuring' && value) {
+            value = InjuryContextLabel[value] ?? value;
+        } else if ((key === 'diagnosisConfirmed' || key === 'requiresSurgery') && value !== undefined) {
+            value = BooleanLabel[String(value) as 'true' | 'false'];
+        }
+
         if (value === undefined || value === null) value = '-';
+
         return <InfoItem key={key} label={label} value={String(value)} />;
     });
 }
@@ -154,18 +201,18 @@ function renderObjectAsInfoItems(
 const injuryFields = [
     { key: 'date', label: 'Data', isDate: true },
     { key: 'bodyRegion', label: 'Região' },
-    { key: 'side', label: 'Lado' },
+    { key: 'bodySide', label: 'Lado' },
     { key: 'degree', label: 'Grau' },
     { key: 'occurredDuring', label: 'Ocorrida durante' },
-    { key: 'diagnosis', label: 'Diagnóstico' },
-    { key: 'surgery', label: 'Cirurgia' },
+    { key: 'diagnosisConfirmed', label: 'Diagnóstico confirmado' },
+    { key: 'requiresSurgery', label: 'Cirurgia necessária' },
     { key: 'description', label: 'Descrição' },
 ];
 
 const painFields = [
     { key: 'date', label: 'Data', isDate: true },
     { key: 'bodyRegion', label: 'Região' },
-    { key: 'side', label: 'Lado' },
+    { key: 'bodySide', label: 'Lado' },
     { key: 'intensity', label: 'Intensidade' },
     { key: 'occurredDuring', label: 'Ocorrida durante' },
     { key: 'description', label: 'Descrição' },

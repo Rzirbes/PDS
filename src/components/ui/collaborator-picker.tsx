@@ -25,7 +25,7 @@ export default function CollaboratorPicker({ selectedId, onSelect, collaborators
     const handleSelect = (id: number | null) => {
         onSelect(id)
         setIsVisible(false)
-        setSearchTerm('') // Limpar busca ao fechar
+        setSearchTerm('')
     }
 
     const selectedLabel =

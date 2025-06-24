@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Button, Switch, TouchableOpacity } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -13,6 +13,13 @@ import { useAthleteById } from '../../hooks/use-athlete';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft } from 'lucide-react-native';
 import { updateAthlete } from '../../services/athlete-service';
+import MultiSelect from '../../components/ui/multi-select';
+import { DominantFoot, dominantFootLabel, FootballPosition, footballPositionLabels } from '../../enums/athelte';
+import SingleSelect from '../../components/ui/single-select';
+import { useCitiesByState, useCountries, useStatesByCountry } from '../../hooks/use-countries';
+import { useClubsByCity } from '../../hooks/use-club';
+import { mutate } from 'swr';
+import LocationPickerGroup from '../../components/ui/location-picker-group';
 
 const schema = z.object({
   name: z.string().min(1),
@@ -38,8 +45,15 @@ const schema = z.object({
   number: z.string().optional(),
   neighborhood: z.string().optional(),
   complement: z.string().optional(),
+  clubs: z.array(z.string()).optional(),
 });
 
+
+interface Location {
+  countryId: string | null;
+  stateId: string | null;
+  cityId: string | null;
+}
 type FormData = z.infer<typeof schema>;
 
 export default function EditAthleteScreen() {
@@ -47,6 +61,23 @@ export default function EditAthleteScreen() {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'EditAthlete'>>();
   const { athleteId } = route.params;
+
+  const [location, setLocation] = useState<Location>({ countryId: null, stateId: null, cityId: null });
+
+
+  const [selectedClubCountryId, setSelectedClubCountryId] = useState<string | undefined>(undefined);
+  const [selectedClubStateId, setSelectedClubStateId] = useState<string | undefined>(undefined);
+  const [selectedClubCityId, setSelectedClubCityId] = useState<string | undefined>(undefined);
+
+
+
+
+  const { data: countries } = useCountries();
+
+  const { data: clubStates } = useStatesByCountry(selectedClubCountryId);
+  const { data: clubCities } = useCitiesByState(selectedClubStateId);
+  const { data: clubs } = useClubsByCity(selectedClubCityId);
+
 
   const { athlete, isLoading, updateAthlete: updateAthleteCache } = useAthleteById(athleteId);
 
@@ -108,20 +139,54 @@ export default function EditAthleteScreen() {
         city: athlete.address?.city ?? '',
         state: athlete.address?.state ?? '',
         country: athlete.address?.country ?? '',
+
+        clubs: athlete.clubs?.map((club) => club.clubId) ?? [],
       });
+
+      setLocation({
+        countryId: athlete.address?.countryId ?? null,
+        stateId: athlete.address?.stateId ?? null,
+        cityId: athlete.address?.cityId ?? null,
+      });
+
+      if (athlete.clubs && athlete.clubs.length > 0) {
+        const firstClub = athlete.clubs[0];
+        setSelectedClubCountryId(firstClub.countryId);
+        setSelectedClubStateId(firstClub.stateId);
+        setSelectedClubCityId(firstClub.cityId);
+      }
     }
   }, [athlete, reset]);
+
+
+
+
+  useEffect(() => {
+    const firstClub = athlete?.clubs?.[0];
+    if (firstClub?.stateId && clubStates) {
+      const foundState = clubStates.find(s => s.id === firstClub.stateId);
+      if (foundState) setSelectedClubStateId(firstClub.stateId);
+    }
+  }, [athlete, clubStates]);
+
+  useEffect(() => {
+    const firstClub = athlete?.clubs?.[0];
+    if (firstClub?.cityId && clubCities) {
+      const foundCity = clubCities.find(c => c.id === firstClub.cityId);
+      if (foundCity) setSelectedClubCityId(firstClub.cityId);
+    }
+  }, [athlete, clubCities]);
 
   async function onSubmit(values: FormData) {
     const addressPayload = {
       street: values.street,
       neighborhood: values.neighborhood,
-      buildingNumber: values.number, // Aqui mapeia de volta
+      buildingNumber: values.number,
       complement: values.complement,
       zipCode: values.zipCode,
-      city: values.city,
-      state: values.state,
-      country: values.country,
+      country: location.countryId,
+      state: location.stateId,
+      city: location.cityId,
     };
 
     const payloadToSend = {
@@ -131,18 +196,10 @@ export default function EditAthleteScreen() {
 
     try {
       await updateAthleteCache(payloadToSend);
-      showMessage({
-        message: 'Sucesso',
-        description: 'Atleta atualizado com sucesso!',
-        type: 'success',
-      });
+      showMessage({ message: 'Sucesso', description: 'Atleta atualizado com sucesso!', type: 'success' });
       navigation.goBack();
     } catch {
-      showMessage({
-        message: 'Erro',
-        description: 'Falha ao atualizar atleta.',
-        type: 'danger',
-      });
+      showMessage({ message: 'Erro', description: 'Falha ao atualizar atleta.', type: 'danger' });
     }
   }
 
@@ -238,15 +295,110 @@ export default function EditAthleteScreen() {
         </FormSection>
 
         <FormSection title="Características">
-          {renderInputs(['dominantFoot', 'positions', 'height', 'weight', 'bestSkill', 'worstSkill', 'goal', 'description'])}
+          {renderInputs(['height', 'weight', 'bestSkill', 'worstSkill', 'goal', 'description'])}
+          <Controller
+            control={form.control}
+            name="dominantFoot"
+            render={({ field: { value, onChange } }) => (
+              <SingleSelect
+                label="Pé dominante"
+                selectedValue={value}
+                onChange={onChange}
+                options={Object.values(DominantFoot).map((foot) => ({
+                  value: foot,
+                  label: dominantFootLabel[foot],
+                }))}
+              />
+            )}
+          />
+          <Controller
+            control={form.control}
+            name="positions"
+            render={({ field: { value, onChange } }) => (
+              <MultiSelect
+                label="Posições em campo"
+                selectedValues={value ?? []}
+                onChange={onChange}
+                options={Object.values(FootballPosition).map((position) => ({
+                  label: footballPositionLabels[position],
+                  value: position,
+                }))}
+              />
+            )}
+          />
         </FormSection>
 
         <FormSection title="Endereço do Atleta">
           {renderInputs(['country', 'state', 'city', 'zipCode', 'street', 'number', 'neighborhood', 'complement'])}
         </FormSection>
 
-        <FormSection title="Histórico Clínico">
-          <Text style={{ color: colors.text }}>Exibição futura de Lesões, Dores e Clubes</Text>
+        <FormSection title="Clubes do Atleta">
+          {athlete.clubs && athlete.clubs.length > 0 ? (
+            athlete.clubs.map((club) => (
+              <View
+                key={club.clubId}
+                style={{
+                  marginBottom: 12,
+                  padding: 12,
+                  borderRadius: 8,
+                  backgroundColor: colors.surface,
+                }}
+              >
+                <Text style={{ color: colors.text, fontWeight: 'bold' }}>{club.name}</Text>
+                <Text style={{ color: colors.text }}>
+                  Início: {new Date(club.startDate).toLocaleDateString()}
+                </Text>
+              </View>
+            ))
+          ) : (
+            <Text style={{ color: colors.text }}>Nenhum clube cadastrado.</Text>
+          )}
+        </FormSection>
+
+
+        <FormSection title="Lesões">
+          {athlete.injuries && athlete.injuries.length > 0 ? (
+            athlete.injuries.map((injury) => (
+              <View
+                key={injury.uuid}
+                style={{
+                  marginBottom: 12,
+                  padding: 12,
+                  borderRadius: 8,
+                  backgroundColor: colors.surface,
+                }}
+              >
+                <Text style={{ color: colors.text, fontWeight: 'bold' }}>{injury.description}</Text>
+                <Text style={{ color: colors.text }}>Região: {injury.bodyRegion}</Text>
+                <Text style={{ color: colors.text }}>Grau: {injury.degree}</Text>
+                <Text style={{ color: colors.text }}>Data: {new Date(injury.date).toLocaleDateString()}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={{ color: colors.text }}>Nenhuma lesão cadastrada.</Text>
+          )}
+        </FormSection>
+
+        <FormSection title="Dores">
+          {athlete.pains && athlete.pains.length > 0 ? (
+            athlete.pains.map((pain) => (
+              <View
+                key={pain.uuid}
+                style={{
+                  marginBottom: 12,
+                  padding: 12,
+                  borderRadius: 8,
+                  backgroundColor: colors.surface,
+                }}
+              >
+                <Text style={{ color: colors.text, fontWeight: 'bold' }}>Região: {pain.bodyRegion}</Text>
+                <Text style={{ color: colors.text }}>Intensidade: {pain.intensity}</Text>
+                <Text style={{ color: colors.text }}>Data: {new Date(pain.date).toLocaleDateString()}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={{ color: colors.text }}>Nenhuma dor cadastrada.</Text>
+          )}
         </FormSection>
 
         <View style={styles.buttonGroup}>
@@ -279,3 +431,7 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
 });
+function useAllClubs(): { data: any; isLoading: any; } {
+  throw new Error('Function not implemented.');
+}
+

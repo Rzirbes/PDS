@@ -11,7 +11,7 @@ import { RootStackParamList } from './types';
 import LoadingScreen from '../screens/loadin-screen';
 import { useAuth } from '../context/auth-context';
 import CollaboratorInfoScreen from '../screens/collaborators/collaborator-info-screen.tsx';
-import EditAthleteScreen from '../screens/athletes/athletes-details';
+import EditAthleteScreen from '../screens/athletes/edit-athletes-screem';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

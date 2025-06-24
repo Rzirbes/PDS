@@ -90,12 +90,14 @@ export default function CollaboratorInfoScreen() {
                     <LabeledInput label="Complemento" value={coach.address?.complement ?? ''} />
 
                     <LocationPickerGroup
-                        selectedCountryId={countryId}
-                        selectedStateId={stateId}
-                        selectedCityId={cityId}
-                        onCountryChange={setCountryId}
-                        onStateChange={setStateId}
-                        onCityChange={setCityId}
+                        defaultCountryId={countryId ?? undefined}
+                        defaultStateId={stateId ?? undefined}
+                        defaultCityId={cityId ?? undefined}
+                        onLocationChange={(newCountryId, newStateId, newCityId) => {
+                            setCountryId(newCountryId);
+                            setStateId(newStateId);
+                            setCityId(newCityId);
+                        }}
                     />
                 </FormSection>
 

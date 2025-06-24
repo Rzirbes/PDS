@@ -1,47 +1,72 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useCitiesByState, useCountries, useStatesByCountry } from '../../hooks/use-countries';
-import { ModalPicker } from './modal-picker';
 import { useTheme } from '../../context/theme-context';
+import { useCountries, useStatesByCountry, useCitiesByState } from '../../hooks/use-countries';
+import { ModalPicker } from './modal-picker';
 
 interface Props {
-    selectedCountryId: string | null;
-    selectedStateId: string | null;
-    selectedCityId: string | null;
-    onCountryChange: (id: string | null) => void;
-    onStateChange: (id: string | null) => void;
-    onCityChange: (id: string | null) => void;
+    defaultCountryId?: string;
+    defaultStateId?: string;
+    defaultCityId?: string;
+    onLocationChange: (countryId: string | null, stateId: string | null, cityId: string | null) => void;
 }
 
+
 export default function LocationPickerGroup({
-    selectedCountryId,
-    selectedStateId,
-    selectedCityId,
-    onCountryChange,
-    onStateChange,
-    onCityChange,
+    defaultCountryId,
+    defaultStateId,
+    defaultCityId,
+    onLocationChange,
 }: Props) {
     const { colors } = useTheme();
 
     const { data: countries = [] } = useCountries();
+
+    const [selectedCountryId, setSelectedCountryId] = useState<string | null>(null);
+    const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
+    const [selectedCityId, setSelectedCityId] = useState<string | null>(null);
+
     const { data: states = [], isLoading: isLoadingStates } = useStatesByCountry(selectedCountryId);
     const { data: cities = [], isLoading: isLoadingCities } = useCitiesByState(selectedStateId);
 
-
     const [openModal, setOpenModal] = useState<'country' | 'state' | 'city' | null>(null);
 
+    // Aplicar os valores default iniciais
     useEffect(() => {
-        onStateChange(null);
-        onCityChange(null);
+        if (countries.length > 0 && defaultCountryId) {
+            setSelectedCountryId(defaultCountryId);
+        }
+    }, [countries, defaultCountryId]);
+
+    useEffect(() => {
+        if (states.length > 0 && defaultStateId) {
+            setSelectedStateId(defaultStateId);
+        }
+    }, [states, defaultStateId]);
+
+    useEffect(() => {
+        if (cities.length > 0 && defaultCityId) {
+            setSelectedCityId(defaultCityId);
+        }
+    }, [cities, defaultCityId]);
+
+    // Sempre que algum valor mudar, avisa o pai
+    useEffect(() => {
+        onLocationChange(selectedCountryId, selectedStateId, selectedCityId);
+    }, [selectedCountryId, selectedStateId, selectedCityId]);
+
+    // Reset de dependências em cascata
+    useEffect(() => {
+        setSelectedStateId(null);
+        setSelectedCityId(null);
     }, [selectedCountryId]);
 
     useEffect(() => {
-        onCityChange(null);
+        setSelectedCityId(null);
     }, [selectedStateId]);
 
-    function getLabel(list: { id: string; name: string }[] | undefined, id: string | null) {
-        if (!list || !id) return '';
-        return list.find((item) => item.id === id)?.name || '';
+    function getLabel(list: { id: string; name: string }[], id: string | null) {
+        return list.find(item => item.id === id)?.name || '';
     }
 
     return (
@@ -58,8 +83,8 @@ export default function LocationPickerGroup({
             <Text style={{ color: colors.text, marginTop: 16, marginBottom: 4 }}>Estado</Text>
             <TouchableOpacity
                 onPress={() => selectedCountryId && setOpenModal('state')}
-                style={{ borderWidth: 1, padding: 8, borderRadius: 6, borderColor: colors.muted }}
                 disabled={!selectedCountryId}
+                style={{ borderWidth: 1, padding: 8, borderRadius: 6, borderColor: colors.muted }}
             >
                 <Text style={{ color: colors.text }}>
                     {isLoadingStates
@@ -72,8 +97,8 @@ export default function LocationPickerGroup({
             <Text style={{ color: colors.text, marginTop: 16, marginBottom: 4 }}>Cidade</Text>
             <TouchableOpacity
                 onPress={() => selectedStateId && setOpenModal('city')}
-                style={{ borderWidth: 1, padding: 8, borderRadius: 6, borderColor: colors.muted }}
                 disabled={!selectedStateId}
+                style={{ borderWidth: 1, padding: 8, borderRadius: 6, borderColor: colors.muted }}
             >
                 <Text style={{ color: colors.text }}>
                     {isLoadingCities
@@ -87,8 +112,11 @@ export default function LocationPickerGroup({
                 <ModalPicker
                     visible
                     title="Selecionar País"
-                    options={countries.map((c) => ({ label: c.name, value: c.id }))}
-                    onSelect={(value) => onCountryChange(value)}
+                    options={countries.map(c => ({ label: c.name, value: c.id }))}
+                    onSelect={(value) => {
+                        setSelectedCountryId(value);
+                        setOpenModal(null);
+                    }}
                     onClose={() => setOpenModal(null)}
                 />
             )}
@@ -97,8 +125,11 @@ export default function LocationPickerGroup({
                 <ModalPicker
                     visible
                     title="Selecionar Estado"
-                    options={states.map((s) => ({ label: s.name, value: s.id }))}
-                    onSelect={(value) => onStateChange(value)}
+                    options={states.map(s => ({ label: s.name, value: s.id }))}
+                    onSelect={(value) => {
+                        setSelectedStateId(value);
+                        setOpenModal(null);
+                    }}
                     onClose={() => setOpenModal(null)}
                 />
             )}
@@ -107,8 +138,11 @@ export default function LocationPickerGroup({
                 <ModalPicker
                     visible
                     title="Selecionar Cidade"
-                    options={cities.map((c) => ({ label: c.name, value: c.id }))}
-                    onSelect={(value) => onCityChange(value)}
+                    options={cities.map(c => ({ label: c.name, value: c.id }))}
+                    onSelect={(value) => {
+                        setSelectedCityId(value);
+                        setOpenModal(null);
+                    }}
                     onClose={() => setOpenModal(null)}
                 />
             )}
