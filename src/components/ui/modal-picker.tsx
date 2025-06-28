@@ -5,12 +5,13 @@ import { useTheme } from '../../context/theme-context';
 interface ModalPickerProps {
     visible: boolean;
     title: string;
+    selectedValue: string | null;
     options: { label: string; value: string }[];
     onSelect: (value: string) => void;
     onClose: () => void;
 }
 
-export function ModalPicker({ visible, title, options, onSelect, onClose }: ModalPickerProps) {
+export function ModalPicker({ visible, title, options, selectedValue, onSelect, onClose }: ModalPickerProps) {
     const { colors } = useTheme();
 
     return (
@@ -22,17 +23,20 @@ export function ModalPicker({ visible, title, options, onSelect, onClose }: Moda
                     <FlatList
                         data={options}
                         keyExtractor={(item) => item.value}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity
-                                style={styles.item}
-                                onPress={() => {
-                                    onSelect(item.value);
-                                    onClose();
-                                }}
-                            >
-                                <Text style={{ color: colors.text }}>{item.label}</Text>
-                            </TouchableOpacity>
-                        )}
+                        renderItem={({ item }) => {
+                            const isSelected = selectedValue === item.value;
+                            return (
+                                <TouchableOpacity
+                                    style={[styles.item, isSelected && { backgroundColor: colors.surface }]}
+                                    onPress={() => {
+                                        onSelect(item.value);
+                                        onClose();
+                                    }}
+                                >
+                                    <Text style={{ color: colors.text }}>{item.label}</Text>
+                                </TouchableOpacity>
+                            );
+                        }}
                     />
 
                     <TouchableOpacity onPress={onClose} style={styles.closeButton}>

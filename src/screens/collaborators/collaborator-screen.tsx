@@ -21,8 +21,10 @@ export default function CollaboratorsScreen() {
 
     return (
         <EntityListScreen<Entity>
+
             title="Colaboradores"
             placeholder="Buscar por colaborador..."
+            showBackButton
             data={listData}
             isLoading={isLoading}
             onFabPress={() => console.log('Cadastrar colaborador')}

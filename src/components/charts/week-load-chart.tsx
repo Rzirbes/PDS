@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, Animated } from 'react-native'
 import {
     BarChart,
     LineChart,
@@ -8,9 +8,8 @@ import {
 } from 'react-native-svg-charts'
 import { G, Circle } from 'react-native-svg'
 import * as shape from 'd3-shape'
-import { format, startOfWeek } from 'date-fns'
-import { generateWeeklyIntervalsForMonth } from '../../utils/date-utils'
-import { Grid } from 'react-native-svg-charts'
+import { addWeeks, endOfWeek, format, parse, startOfWeek, subWeeks } from 'date-fns'
+import { generateWeeklyIntervalsAround, generateWeeklyIntervalsForMonth } from '../../utils/date-utils'
 
 interface WeekLoadChartProps {
     data: {
@@ -23,42 +22,43 @@ interface WeekLoadChartProps {
             performed: number[]
         }
     }
+    initialDate: Date
 }
 
-export function WeekLoadChart({ data }: WeekLoadChartProps) {
+
+export function WeekLoadChart({ data, initialDate }: WeekLoadChartProps,) {
     const padding = 8
 
-    const athleteWeeks = generateWeeklyIntervalsForMonth().map((interval, index) => ({
-        startDate: interval.startDate,
-        endDate: interval.endDate,
-        weekLoad: data.load.planned[index] ?? 0,
-        actualLoad: data.load.performed[index] ?? 0,
-        strain: data.strain[index] ?? 0,
-        chronicAcute: data.acuteChronicLoadRatio[index] ?? 0,
-        monotony: data.monotony[index] ?? 0,
-    }))
+    const athleteWeeks = data.week.map((weekStr, index) => {
+        const [startStr, endStr] = weekStr.split(' - ')
+        const startDate = parse(startStr, 'dd/MM/yyyy', new Date())
+        const endDate = parse(endStr, 'dd/MM/yyyy', new Date())
 
-    const allWeeksOfMonth = generateWeeklyIntervalsForMonth()
-    const labels: string[] = []
-    const chartData: any[] = []
-
-    allWeeksOfMonth.forEach((week) => {
-        const match = athleteWeeks.find(
-            (m) =>
-                startOfWeek(new Date(m.startDate), { weekStartsOn: 0 }).getTime() ===
-                startOfWeek(week.startDate, { weekStartsOn: 0 }).getTime()
-        )
-
-        labels.push(`${format(week.startDate, 'd/M')} - ${format(week.endDate, 'd/M')}`)
-        chartData.push({
-            planned: match?.weekLoad ?? 0,
-            actual: match?.actualLoad ?? 0,
-            strain: match?.strain ?? 0,
-            monotony: match?.monotony ?? 0,
-            acuteChronic: match?.chronicAcute ?? 0,
-        })
+        return {
+            startDate,
+            endDate,
+            weekLoad: data.load.planned[index] ?? 0,
+            actualLoad: data.load.performed[index] ?? 0,
+            strain: data.strain[index] ?? 0,
+            chronicAcute: data.acuteChronicLoadRatio[index] ?? 0,
+            monotony: data.monotony[index] ?? 0,
+        }
     })
 
+    const currentStart = startOfWeek(initialDate, { weekStartsOn: 0 });
+
+    const chartData = athleteWeeks.map((week) => ({
+        planned: week.weekLoad,
+        actual: week.actualLoad,
+        strain: week.strain,
+        monotony: week.monotony,
+        acuteChronic: week.chronicAcute,
+    }))
+
+    const labels = athleteWeeks.map(
+        (week) => `${format(week.startDate, 'd/M')} - ${format(week.endDate, 'd/M')}`
+    )
+    const AnimatedBar = Animated.createAnimatedComponent(BarChart)
     const barData = [
         { data: chartData.map((d) => ({ value: d.planned })), svg: { fill: '#a37e00' } },
         { data: chartData.map((d) => ({ value: d.actual })), svg: { fill: '#facc15' } },
@@ -97,6 +97,8 @@ export function WeekLoadChart({ data }: WeekLoadChartProps) {
                 <View style={{ flex: 1, marginLeft: 10 }}>
                     <View style={{ flex: 1 }}>
                         <BarChart
+                            animate
+                            animationDuration={400}
                             style={StyleSheet.absoluteFill}
                             data={barData}
                             yAccessor={({ item }: { item: { value: number } }) => item.value}

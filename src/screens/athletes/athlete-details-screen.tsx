@@ -6,10 +6,10 @@ import { useTheme } from '../../context/theme-context'
 import type { RootStackParamList } from '../../navigation/types'
 import { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import HeaderWithBack from '../../components/atheltes/header-with-back'
+import HeaderWithBack from '../../components/athletes/header-with-back'
 import MonitoringContainer from '../../components/charts/monitoring-container'
 import { useAthleteById, useAthletes } from '../../hooks/use-athlete'
-import AthleteInfoScreen from '../../components/atheltes/athlete-infor'
+import AthleteInfoScreen from '../../components/athletes/athlete-infor'
 
 type AthleteDetailsRouteProp = RouteProp<RootStackParamList, 'AthleteDetails'>
 type RouteType = {

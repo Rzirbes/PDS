@@ -1,11 +1,13 @@
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import { getCountries, getStates, getCities, Country, State, City } from '../services/location-service';
+import { useEffect } from 'react';
 
 
 export function useCountries() {
     console.log('Chamou useCountries');
-    return useSWR<Country[]>(
-        'countries',
+
+    const swrResult = useSWR<Country[]>(
+        'countries?all=true',
         getCountries,
         {
             revalidateOnMount: true,
@@ -13,6 +15,13 @@ export function useCountries() {
             dedupingInterval: 0,
         }
     );
+    useEffect(() => {
+        mutate('countries?all=true');  // Força o refresh
+    }, []);
+
+    console.log('Resultado de countries:', swrResult.data);
+
+    return swrResult;
 }
 
 export function useStatesByCountry(countryId: string | null | undefined) {

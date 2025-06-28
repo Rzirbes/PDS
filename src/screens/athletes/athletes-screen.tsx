@@ -13,7 +13,7 @@ export default function AthletesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { athletes, isLoading } = useAthletes();
 
-  // 👇 Força o SWR a refazer a busca sempre que a tela ganhar foco
+
   useFocusEffect(
     useCallback(() => {
       mutate('athletes');
@@ -23,19 +23,20 @@ export default function AthletesScreen() {
   const listData = athletes.map((athlete) => ({
     id: String(athlete.id),
     name: athlete.name,
-    email: athlete.email ?? '', 
+    email: athlete.email ?? '',
     status: (athlete.isEnabled ? 'Ativo' : 'Inativo') as EntityStatus,
   }));
 
-  console.log('listData final para render:', listData);
+  // console.log('listData final para render:', listData);
 
   return (
     <EntityListScreen
       title="Atletas"
+      showBackButton
       placeholder="Buscar por atleta..."
       isLoading={isLoading}
       data={listData}
-      onFabPress={() => console.log('Cadastrar atleta')}
+      onFabPress={() => navigation.navigate('CreateAthlete')}
       renderItem={(item) => (
         <EntityItemCard
           item={item}

@@ -8,4 +8,5 @@ export type RootStackParamList = {
   CollaboratorDetails: { coachId: string };
   Trainings: undefined;
   Schedule: undefined;
+  CreateAthlete: undefined;
 };

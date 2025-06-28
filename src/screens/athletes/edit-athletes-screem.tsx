@@ -6,20 +6,19 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { showMessage } from 'react-native-flash-message';
 import { useTheme } from '../../context/theme-context';
-import ThemedInput from '../../components/ui/themedInput';
-import { FormSection } from '../../components/ui/form-section';
 import { RootStackParamList } from '../../navigation/types';
 import { useAthleteById } from '../../hooks/use-athlete';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
-import { updateAthlete } from '../../services/athlete-service';
-import MultiSelect from '../../components/ui/multi-select';
+import { ChevronLeft, Trash } from 'lucide-react-native';
 import { DominantFoot, dominantFootLabel, FootballPosition, footballPositionLabels } from '../../enums/athelte';
+
+import { useCitiesByState, useStatesByCountry } from '../../hooks/use-countries';
+import ThemedInput from '../../components/ui/themedInput';
+import { FormSection } from '../../components/ui/form-section';
 import SingleSelect from '../../components/ui/single-select';
-import { useCitiesByState, useCountries, useStatesByCountry } from '../../hooks/use-countries';
-import { useClubsByCity } from '../../hooks/use-club';
-import { mutate } from 'swr';
-import LocationPickerGroup from '../../components/ui/location-picker-group';
+import MultiSelect from '../../components/ui/multi-select';
+import LocationSelect from '../../components/ui/location-select';
+import { AddClubModal } from '../../components/ui/add-club-modal';
 
 const schema = z.object({
   name: z.string().min(1),
@@ -56,7 +55,7 @@ interface Location {
 }
 type FormData = z.infer<typeof schema>;
 
-export default function EditAthleteScreen() {
+export default function EdithAthleteScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'EditAthlete'>>();
@@ -69,17 +68,16 @@ export default function EditAthleteScreen() {
   const [selectedClubStateId, setSelectedClubStateId] = useState<string | undefined>(undefined);
   const [selectedClubCityId, setSelectedClubCityId] = useState<string | undefined>(undefined);
 
+  const [isClubModalVisible, setIsClubModalVisible] = useState(false);
+  const [newClubs, setNewClubs] = useState<any[]>([]);
 
-
-
-  const { data: countries } = useCountries();
+  const { data: clubCities } = useCitiesByState(selectedClubStateId);
 
   const { data: clubStates } = useStatesByCountry(selectedClubCountryId);
-  const { data: clubCities } = useCitiesByState(selectedClubStateId);
-  const { data: clubs } = useClubsByCity(selectedClubCityId);
 
 
-  const { athlete, isLoading, updateAthlete: updateAthleteCache } = useAthleteById(athleteId);
+  const { athlete, isLoading, updateAthlete: updateAthleteCache, updateStatus } = useAthleteById(athleteId);
+
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -136,9 +134,10 @@ export default function EditAthleteScreen() {
         number: athlete.address?.buildingNumber ?? '',
         complement: athlete.address?.complement ?? '',
         zipCode: athlete.address?.zipCode ?? '',
-        city: athlete.address?.city ?? '',
-        state: athlete.address?.state ?? '',
-        country: athlete.address?.country ?? '',
+        city: athlete.address?.cityId ?? '',
+        state: athlete.address?.stateId ?? '',
+        country: athlete.address?.countryId ?? '',
+
 
         clubs: athlete.clubs?.map((club) => club.clubId) ?? [],
       });
@@ -158,7 +157,13 @@ export default function EditAthleteScreen() {
     }
   }, [athlete, reset]);
 
-
+  function cleanEmptyStrings(obj: Record<string, any>) {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([_, v]) =>
+        v !== '' && v !== undefined
+      )
+    );
+  }
 
 
   useEffect(() => {
@@ -178,35 +183,64 @@ export default function EditAthleteScreen() {
   }, [athlete, clubCities]);
 
   async function onSubmit(values: FormData) {
+    if (!athlete) return;
+    const { country, state, city, clubs, birthday, height, weight, ...rest } = values;
+
     const addressPayload = {
-      street: values.street,
-      neighborhood: values.neighborhood,
-      buildingNumber: values.number,
-      complement: values.complement,
-      zipCode: values.zipCode,
-      country: location.countryId,
-      state: location.stateId,
-      city: location.cityId,
+      street: rest.street || undefined,
+      neighborhood: rest.neighborhood || undefined,
+      buildingNumber: rest.number || undefined,
+      complement: rest.complement || undefined,
+      zipCode: rest.zipCode || undefined,
+      countryId: location.countryId || undefined,
+      stateId: location.stateId || undefined,
+      cityId: location.cityId || undefined,
     };
 
-    const payloadToSend = {
-      ...values,
+    const formattedClubs = [...(athlete.clubs ?? []), ...newClubs].map(club => ({
+      clubId: club.clubId,
+      startDate: club.startDate,
+      countryId: club.countryId,
+      stateId: club.stateId,
+      cityId: club.cityId,
+    }));
+    const preCleanedPayload = {
+      ...rest,
+      birthday: birthday ? new Date(birthday) : undefined,
+      height: height ? parseFloat(height) : undefined,
+      weight: weight ? parseFloat(weight) : undefined,
+      bestSkill: rest.bestSkill || undefined,
+      worstSkill: rest.worstSkill || undefined,
+      goal: rest.goal || undefined,
+      dominantFoot: rest.dominantFoot || undefined,
+      observation: rest.description || undefined,
+      phone: rest.phone || undefined,
+      cpf: rest.cpf || undefined,
       address: addressPayload,
-    };
+      clubs: formattedClubs,
 
+      isEnabled: values.isEnabled ?? false,
+      isMonitorDaily: values.isMonitorDaily ?? false,
+    };
+    const payloadToSend = cleanEmptyStrings(preCleanedPayload);
     try {
-      await updateAthleteCache(payloadToSend);
+      console.log('Payload final:', payloadToSend);
+      await updateAthleteCache(payloadToSend, athleteId);
       showMessage({ message: 'Sucesso', description: 'Atleta atualizado com sucesso!', type: 'success' });
       navigation.goBack();
     } catch {
       showMessage({ message: 'Erro', description: 'Falha ao atualizar atleta.', type: 'danger' });
     }
   }
+  function removeNewClub(indexToRemove: number) {
+    setNewClubs(prev => prev.filter((_, i) => i !== indexToRemove));
+  }
 
   function renderInputs(fields: string[]) {
     return fields.map((fieldName) => {
       const field = inputFields.find(f => f.name === fieldName);
       if (!field) return null;
+
       return (
         <View key={field.name} style={{ marginBottom: 12 }}>
           <Text style={{ color: colors.text, marginBottom: 4 }}>{field.label}</Text>
@@ -227,27 +261,27 @@ export default function EditAthleteScreen() {
   }
 
   const inputFields = [
-    { name: 'name', label: 'Nome', placeholder: 'Nome' },
-    { name: 'email', label: 'Email', placeholder: 'Email' },
-    { name: 'cpf', label: 'CPF', placeholder: 'CPF' },
-    { name: 'phone', label: 'Telefone', placeholder: 'Telefone' },
-    { name: 'birthday', label: 'Data de nascimento', placeholder: 'AAAA-MM-DD' },
-    { name: 'height', label: 'Altura (em metros)', placeholder: 'Ex: 1.75' },
-    { name: 'weight', label: 'Peso (kg)', placeholder: 'Ex: 70' },
-    { name: 'bestSkill', label: 'Melhor Qualidade', placeholder: 'Ex: Visão de jogo' },
-    { name: 'worstSkill', label: 'Maio Defeito', placeholder: 'Ex: Finalização' },
-    { name: 'goal', label: 'Objetivo', placeholder: 'Ex: Melhorar força' },
-    { name: 'dominantFoot', label: 'Pé dominante', placeholder: 'Ex: Direito / Esquerdo' },
-    { name: 'description', label: 'Observações', placeholder: 'Observações sobre o atleta' },
-    { name: 'country', label: 'País', placeholder: 'Ex: Brasil' },
-    { name: 'state', label: 'Estado', placeholder: 'Ex: RS' },
-    { name: 'city', label: 'Cidade', placeholder: 'Ex: Porto Alegre' },
-    { name: 'zipCode', label: 'CEP', placeholder: 'Ex: 00000-000' },
-    { name: 'street', label: 'Rua', placeholder: 'Ex: Rua das Flores' },
-    { name: 'number', label: 'Número', placeholder: 'Ex: 123' },
-    { name: 'neighborhood', label: 'Bairro', placeholder: 'Ex: Centro' },
-    { name: 'complement', label: 'Complemento', placeholder: 'Ex: Apt 101' },
+    { name: 'name', label: 'Nome', placeholder: 'Nome', },
+    { name: 'email', label: 'Email', placeholder: 'Email', },
+    { name: 'cpf', label: 'CPF', placeholder: 'CPF', },
+    { name: 'phone', label: 'Telefone', placeholder: 'Telefone', },
+    { name: 'birthday', label: 'Data de nascimento', placeholder: 'AAAA-MM-DD', },
+    { name: 'height', label: 'Altura (em metros)', placeholder: 'Ex: 1.75', },
+    { name: 'weight', label: 'Peso (kg)', placeholder: 'Ex: 70', },
+    { name: 'bestSkill', label: 'Melhor Qualidade', placeholder: 'Ex: Visão de jogo', },
+    { name: 'worstSkill', label: 'Maior Defeito', placeholder: 'Ex: Finalização', },
+    { name: 'goal', label: 'Objetivo', placeholder: 'Ex: Melhorar força', },
+    { name: 'description', label: 'Observações', placeholder: 'Observações sobre o atleta', },
+    { name: 'zipCode', label: 'CEP', placeholder: 'Ex: 00000-000', },
+    { name: 'street', label: 'Rua', placeholder: 'Ex: Rua das Flores', },
+    { name: 'number', label: 'Número', placeholder: 'Ex: 123', },
+    { name: 'neighborhood', label: 'Bairro', placeholder: 'Ex: Centro', },
+    { name: 'complement', label: 'Complemento', placeholder: 'Ex: Apt 101', },
+    { name: 'country', label: 'País', placeholder: 'Selecione o país', },
+    { name: 'state', label: 'Estado', placeholder: 'Selecione o estado', },
+    { name: 'city', label: 'Cidade', placeholder: 'Selecione a cidade', },
   ];
+
 
   if (isLoading || !athlete) {
     return (
@@ -276,8 +310,13 @@ export default function EditAthleteScreen() {
             <Controller
               control={form.control}
               name="isEnabled"
-              render={({ field: { onChange, value } }) => (
-                <Switch value={!!value} onValueChange={onChange} />
+              render={({ field: { value } }) => (
+                <Switch
+                  value={!!value}
+                  onValueChange={async () => {
+                    await updateStatus();
+                  }}
+                />
               )}
             />
           </View>
@@ -329,31 +368,101 @@ export default function EditAthleteScreen() {
         </FormSection>
 
         <FormSection title="Endereço do Atleta">
-          {renderInputs(['country', 'state', 'city', 'zipCode', 'street', 'number', 'neighborhood', 'complement'])}
+          <LocationSelect
+            location={location}
+            setLocation={setLocation}
+            control={form.control}
+            watch={form.watch}
+            setValue={form.setValue}
+          />
+          {renderInputs(['zipCode', 'street', 'number', 'neighborhood', 'complement'])}
         </FormSection>
 
-        <FormSection title="Clubes do Atleta">
-          {athlete.clubs && athlete.clubs.length > 0 ? (
-            athlete.clubs.map((club) => (
-              <View
-                key={club.clubId}
+        <FormSection
+          title={
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ color: colors.text, fontSize: 16, fontWeight: 'bold' }}>Clubes do Atleta</Text>
+              <TouchableOpacity
+                onPress={() => setIsClubModalVisible(true)}
                 style={{
-                  marginBottom: 12,
-                  padding: 12,
-                  borderRadius: 8,
-                  backgroundColor: colors.surface,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  paddingHorizontal: 8,
+                  paddingVertical: 4,
                 }}
               >
-                <Text style={{ color: colors.text, fontWeight: 'bold' }}>{club.name}</Text>
-                <Text style={{ color: colors.text }}>
-                  Início: {new Date(club.startDate).toLocaleDateString()}
-                </Text>
-              </View>
-            ))
+                <Text style={{ color: colors.primary, fontSize: 16, fontWeight: 'bold' }}>+</Text>
+                <Text style={{ color: colors.primary, fontSize: 14 }}>Adicionar clube</Text>
+              </TouchableOpacity>
+            </View>
+          }
+        >
+          {[...(athlete.clubs ?? []), ...newClubs].length > 0 ? (
+            [...(athlete.clubs ?? []), ...newClubs].map((club, index) => {
+              const isNew = index >= (athlete.clubs?.length ?? 0);
+              return (
+                <View
+                  key={`${club.clubId ?? club.name}-${index}`}
+                  style={{
+                    marginBottom: 12,
+                    padding: 12,
+                    borderRadius: 8,
+                    backgroundColor: colors.background,
+                    borderColor: colors.secondary,
+                    borderWidth: 2,
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <View>
+                    <Text style={{ color: colors.text, fontWeight: 'bold' }}>{club.name}</Text>
+                    {club.startDate && (
+                      <Text style={{ color: colors.text }}>
+                        Início: {new Date(club.startDate).toLocaleDateString()}
+                      </Text>
+                    )}
+                  </View>
+
+                  {isNew && (
+                    <TouchableOpacity
+                      onPress={() => removeNewClub(index - (athlete.clubs?.length ?? 0))}
+                      style={{
+                        marginLeft: 8,
+                        backgroundColor: colors.danger,
+                        borderRadius: 8,
+                        padding: 6,
+                      }}
+                    >
+                      <Trash color='#fff' size={20} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })
           ) : (
             <Text style={{ color: colors.text }}>Nenhum clube cadastrado.</Text>
           )}
         </FormSection>
+
+        <AddClubModal
+          visible={isClubModalVisible}
+          onClose={() => setIsClubModalVisible(false)}
+          onSave={(newClub) => {
+            const formattedClub = {
+              clubId: newClub.id,
+              name: newClub.name,
+              startDate: new Date().toISOString(),
+              countryId: newClub.countryId,
+              stateId: newClub.stateId,
+              cityId: newClub.cityId,
+            };
+
+            setNewClubs((prev) => [...prev, formattedClub]);
+            setIsClubModalVisible(false);
+          }}
+        />
 
 
         <FormSection title="Lesões">
@@ -365,7 +474,9 @@ export default function EditAthleteScreen() {
                   marginBottom: 12,
                   padding: 12,
                   borderRadius: 8,
-                  backgroundColor: colors.surface,
+                  backgroundColor: colors.background,
+                  borderColor: colors.secondary,
+                  borderWidth: 2
                 }}
               >
                 <Text style={{ color: colors.text, fontWeight: 'bold' }}>{injury.description}</Text>
@@ -388,7 +499,9 @@ export default function EditAthleteScreen() {
                   marginBottom: 12,
                   padding: 12,
                   borderRadius: 8,
-                  backgroundColor: colors.surface,
+                  backgroundColor: colors.background,
+                  borderColor: colors.secondary,
+                  borderWidth: 2
                 }}
               >
                 <Text style={{ color: colors.text, fontWeight: 'bold' }}>Região: {pain.bodyRegion}</Text>
@@ -431,7 +544,5 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
 });
-function useAllClubs(): { data: any; isLoading: any; } {
-  throw new Error('Function not implemented.');
-}
+
 

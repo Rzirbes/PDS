@@ -94,3 +94,43 @@ export async function updateAthlete(uuid: string, data: any) {
         body: JSON.stringify(data),
     });
 }
+
+export async function toggleAthleteStatus(uuid: string) {
+    return await apiFetch(`/athletes/${uuid}/update-status`, {
+        method: 'PATCH',
+    });
+}
+
+export async function createAthlete(data: any) {
+    const formData = new FormData();
+
+    for (const key in data) {
+        const value = data[key];
+
+        if (value === undefined || value === null) continue;
+
+        if (key === 'avatar' && value instanceof File) {
+            formData.append('avatar', value);
+        } else if (
+            typeof value === 'object' &&
+            !(value instanceof Date) &&
+            !Array.isArray(value)
+        ) {
+            formData.append(key, JSON.stringify(value)); // ex: address
+        } else if (Array.isArray(value)) {
+            formData.append(key, JSON.stringify(value)); // ex: pains, injuries
+        } else if (value instanceof Date) {
+            formData.append(key, value.toISOString());
+        } else if (typeof value === 'boolean' || typeof value === 'number') {
+            formData.append(key, String(value));
+        } else {
+            formData.append(key, value);
+        }
+    }
+
+    return await apiFetch('/athletes', {
+        method: 'POST',
+        body: formData,
+    });
+}
+

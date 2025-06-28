@@ -7,8 +7,8 @@ export const colors = {
         muted: '#9ca3af',
         success: '#10b981',
         danger: '#e11d48',
-        border: '#4b5563',     // exemplo
-        surface: '#1f2937',     // exemplo
+        border: '#4b5563',
+        surface: '#1f2937',
     },
     dark: {
         background: '#ffffff',
@@ -18,7 +18,7 @@ export const colors = {
         muted: '#6b7280',
         success: '#10b981',
         danger: '#ef4444',
-        border: '#d1d5db',      // exemplo
-        surface: '#f3f4f6',      // exemplo
+        border: '#d1d5db',
+        surface: '#f3f4f6',
     },
 };

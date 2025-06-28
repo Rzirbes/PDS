@@ -110,6 +110,7 @@ export default function LocationPickerGroup({
             {/* Modais */}
             {openModal === 'country' && (
                 <ModalPicker
+                    selectedValue={""}
                     visible
                     title="Selecionar País"
                     options={countries.map(c => ({ label: c.name, value: c.id }))}
@@ -123,6 +124,7 @@ export default function LocationPickerGroup({
 
             {openModal === 'state' && (
                 <ModalPicker
+                    selectedValue={""}
                     visible
                     title="Selecionar Estado"
                     options={states.map(s => ({ label: s.name, value: s.id }))}
@@ -136,6 +138,7 @@ export default function LocationPickerGroup({
 
             {openModal === 'city' && (
                 <ModalPicker
+                    selectedValue={""}
                     visible
                     title="Selecionar Cidade"
                     options={cities.map(c => ({ label: c.name, value: c.id }))}

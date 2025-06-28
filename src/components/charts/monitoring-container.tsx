@@ -60,7 +60,7 @@ export default function MonitoringContainer({ athleteId }: Props) {
                 </TouchableOpacity>
             </View>
 
-            <WeekLoadChart data={monotonyMonitoring} />
+            <WeekLoadChart data={monotonyMonitoring} initialDate={currentDate} />
             {/* <DailyLoadChart data={weekMonitoring} /> */}
             {/* <DailyDurationChart data={weekMonitoring} /> */}
         </ScrollView>

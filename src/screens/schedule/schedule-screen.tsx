@@ -9,6 +9,7 @@ import WeekDaySelector from '../../components/schedule/week-day-selector'
 import ScheduleComponent from '../../components/schedule/schedule-component'
 import CollaboratorPicker from '../../components/ui/collaborator-picker'
 import { useTheme } from '../../context/theme-context'
+import { Plus } from 'lucide-react-native'
 
 interface Training {
     id: string
@@ -95,7 +96,30 @@ export default function ScheduleScreen() {
 
             <ScheduleComponent trainings={trainings} colors={colors} coaches={mockCoaches} />
 
-
+            <TouchableOpacity
+                style={{
+                    position: 'absolute',
+                    bottom: 24,
+                    right: 24,
+                    backgroundColor: colors.primary,
+                    width: 56,
+                    height: 56,
+                    borderRadius: 28,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+                    elevation: 5,
+                    zIndex: 10,
+                }}
+                onPress={() => {
+                    console.log('Abrir modal de criação de treino')
+                }}
+            >
+                <Plus color="#fff" size={28} />
+            </TouchableOpacity>
         </View>
     )
 }

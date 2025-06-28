@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   View,
   Text,
@@ -8,9 +8,10 @@ import {
   Switch,
   StyleSheet,
   Keyboard,
-  TouchableWithoutFeedback,
   Alert,
   ActivityIndicator,
+  Platform,
+  TouchableWithoutFeedback,
 } from 'react-native'
 import { Eye, EyeOff } from 'lucide-react-native'
 import type { RootStackParamList } from '../navigation/types'
@@ -20,7 +21,6 @@ import { login } from '../services/auth-service'
 import { useAuth } from '../context/auth-context'
 import { useTheme } from '../context/theme-context'
 
-
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -28,10 +28,52 @@ export default function LoginScreen() {
   const [keepConnected, setKeepConnected] = useState(false)
   const [loading, setLoading] = useState(false)
 
-
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
   const { colors } = useTheme()
-  const { setToken } = useAuth();
+  const { setToken } = useAuth()
+
+  const themedStyles = useMemo(() => StyleSheet.create({
+    input: {
+      ...styles.input,
+      borderColor: colors.muted,
+      color: colors.text,
+    },
+    passwordInput: {
+      ...styles.passwordInput,
+      color: colors.text,
+    },
+    passwordInputContainer: {
+      ...styles.passwordInputContainer,
+      borderColor: colors.muted,
+    },
+    label: {
+      ...styles.label,
+      color: colors.text,
+    },
+    title: {
+      ...styles.title,
+      color: colors.primary,
+    },
+    subtitle: {
+      ...styles.subtitle,
+      color: colors.muted,
+    },
+    loginButton: {
+      ...styles.loginButton,
+      backgroundColor: colors.primary,
+    },
+    loginButtonText: {
+      ...styles.loginButtonText,
+    },
+    forgotPassword: {
+      ...styles.forgotPassword,
+      color: colors.primary,
+    },
+    switchLabel: {
+      ...styles.switchLabel,
+      color: colors.text,
+    },
+  }), [colors])
 
   async function handleLogin() {
     if (!email || !password) {
@@ -40,87 +82,94 @@ export default function LoginScreen() {
     }
 
     setLoading(true)
-
     try {
-      const data = await login(email, password);
-      await saveSession(data.token, data.refreshToken, keepConnected);
-      console.log('Login OK, token salvo:', data.token);
-      setToken(data.token);
+      const data = await login(email, password)
+      await saveSession(data.token, data.refreshToken, keepConnected)
+      console.log('Login OK, token salvo:', data.token)
+      setToken(data.token)
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
-      Alert.alert('Erro', 'Falha no login. Verifique suas credenciais.');
+      console.error('Erro ao fazer login:', error)
+      Alert.alert('Erro', 'Falha no login. Verifique suas credenciais.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
+  }
 
+  const FormContent = (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={themedStyles.title}>Acesse sua conta</Text>
+      <Text style={themedStyles.subtitle}>Insira seu e-mail para acessar o painel do usuário.</Text>
+
+      <View style={styles.fieldContainer}>
+        <Text style={themedStyles.label}>E-mail</Text>
+        <TextInput
+          placeholder="Digite o seu e-mail..."
+          keyboardType="email-address"
+          placeholderTextColor={colors.muted}
+          style={themedStyles.input}
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+          autoCapitalize="none"
+        />
+      </View>
+
+      <View style={styles.fieldContainer}>
+        <Text style={themedStyles.label}>Senha</Text>
+        <View style={themedStyles.passwordInputContainer}>
+          <TextInput
+            placeholder="Digite a sua senha..."
+            secureTextEntry={!showPassword}
+            placeholderTextColor={colors.muted}
+            style={themedStyles.passwordInput}
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+          />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            {showPassword ? (
+              <EyeOff size={20} color={colors.muted} />
+            ) : (
+              <Eye size={20} color={colors.muted} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.switchContainer}>
+        <Switch
+          value={keepConnected}
+          onValueChange={setKeepConnected}
+          trackColor={{ false: '#ccc', true: colors.primary }}
+          thumbColor="#fff"
+        />
+        <Text style={themedStyles.switchLabel}>Manter-se conectado</Text>
+      </View>
+
+      <TouchableOpacity
+        style={themedStyles.loginButton}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={themedStyles.loginButtonText}>Entrar</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity>
+        <Text style={themedStyles.forgotPassword}>Esqueceu sua senha?</Text>
+      </TouchableOpacity>
+    </View>
+  )
+
+
+  if (Platform.OS === 'web') {
+    return FormContent
   }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={[styles.title, { color: colors.primary }]}>Acesse sua conta</Text>
-        <Text style={[styles.subtitle, { color: colors.muted }]}>Insira seu e-mail para acessar o painel do usuário.</Text>
-
-        <View style={styles.fieldContainer}>
-          <Text style={[styles.label, { color: colors.text }]}>E-mail</Text>
-          <TextInput
-            placeholder="Digite o seu e-mail..."
-            keyboardType="email-address"
-            placeholderTextColor={colors.muted}
-            style={[styles.input, { borderColor: colors.muted, color: colors.text }]}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.fieldContainer}>
-          <Text style={[styles.label, { color: colors.text }]}>Senha</Text>
-          <View style={[styles.passwordInputContainer, { borderColor: colors.muted }]}>
-            <TextInput
-              placeholder="Digite a sua senha..."
-              secureTextEntry={!showPassword}
-              placeholderTextColor={colors.muted}
-              style={[styles.passwordInput, { color: colors.text }]}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              {showPassword ? (
-                <EyeOff size={20} color={colors.muted} />
-              ) : (
-                <Eye size={20} color={colors.muted} />
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.switchContainer}>
-          <Switch
-            value={keepConnected}
-            onValueChange={setKeepConnected}
-            trackColor={{ false: '#ccc', true: colors.primary }}
-            thumbColor="#fff"
-          />
-          <Text style={[styles.switchLabel, { color: colors.text }]}>Manter-se conectado</Text>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.loginButton, { backgroundColor: colors.primary }]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.loginButtonText}>Entrar</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity>
-          <Text style={[styles.forgotPassword, { color: colors.primary }]}>Esqueceu sua senha?</Text>
-        </TouchableOpacity>
-      </View>
+      {FormContent}
     </TouchableWithoutFeedback>
   )
 }

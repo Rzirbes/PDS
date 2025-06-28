@@ -16,11 +16,11 @@ export async function apiFetch<TResponse = any>(
     let token = await getAccessToken();
 
     const cleanUrl = `${API_URL}${path}`.replace(/([^:]\/)\/+/g, '$1');
-
+    const isFormData = options.body instanceof FormData;
 
     const baseHeaders: Record<string, string> = {
-        'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     };
 
     const finalHeaders = {
@@ -51,28 +51,35 @@ export async function apiFetch<TResponse = any>(
         }
     }
 
+    const rawText = await response.clone().text();
+    console.log('Resposta bruta da API:', rawText);
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+
     if (!response.ok) {
+        console.error('Erro no cadastro:', response.status, rawText);
+
         let errorMessage = 'Erro desconhecido';
         try {
             const contentType = response.headers.get('content-type');
             if (contentType?.includes('application/json')) {
-                const errorBody = await response.json();
+                const errorBody = JSON.parse(rawText);
                 errorMessage = errorBody?.message || errorMessage;
             }
         } catch (parseError) {
             console.warn('Erro ao tentar parsear resposta de erro da API:', parseError);
         }
-        throw new Error(errorMessage);
-    }
 
-    const rawText = await response.clone().text();
-    console.log('Resposta bruta da API:', rawText);
+        throw new Error(`Erro ${response.status}: ${errorMessage}`);
+    }
 
     if (response.status === 204) {
         return {} as TResponse;
     }
 
-    return response.json();
+    const json = await response.json();
+    console.log('JSON parseado:', json);
+    return json;
 }
 
 export async function publicFetch<TResponse = any>(

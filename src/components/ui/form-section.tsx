@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { View, Text, TouchableOpacity, ViewStyle } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '../../context/theme-context';
 
 interface Props {
-    title: string;
+    title: string | ReactNode;
     children: React.ReactNode;
     style?: ViewStyle;
     initialOpen?: boolean;
