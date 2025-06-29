@@ -3,13 +3,19 @@
 import React, { useState } from 'react'
 import { View, Text, FlatList, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
 import { mockCoaches, mockSchedules, mockTrainingPlannings } from '../../mock'
-import { generateWeeklyIntervalsForMonth } from '../../utils/date-utils'
-import { format } from 'date-fns'
+import { generateWeeklyIntervalsForMonth, getWeekInterval } from '../../utils/date-utils'
+import { addDays, format, getMinutes } from 'date-fns'
 import WeekDaySelector from '../../components/schedule/week-day-selector'
 import ScheduleComponent from '../../components/schedule/schedule-component'
 import CollaboratorPicker from '../../components/ui/collaborator-picker'
 import { useTheme } from '../../context/theme-context'
-import { Plus } from 'lucide-react-native'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react-native'
+import { RootStackParamList } from '../../navigation/types'
+import { useNavigation } from '@react-navigation/native'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { useSchedules } from '../../hooks/use-schedule'
+import { DatePickerInput } from '../../components/ui/date-picker-input'
+import { useValidatedCoaches } from '../../hooks/use-validate-coaches'
 
 interface Training {
     id: string
@@ -36,52 +42,68 @@ export default function ScheduleScreen() {
     const isAdmin = user.role === 'ADMIN'
     const { colors } = useTheme()
 
-    const screenWidth = Dimensions.get('window').width
-    const horizontalPadding = 16 * 2
-    const dayMargin = 1 * 2
-    const columns = 8
-
-    const dayWidth = (screenWidth - horizontalPadding - (dayMargin * columns)) / columns
-
-
-    const [selectedDay, setSelectedDay] = useState<string | null>(null)
-
-    const weeklyRanges = generateWeeklyIntervalsForMonth()
-    const [selectedWeekIndex, setSelectedWeekIndex] = useState(0)
-    const selectedWeek = weeklyRanges[selectedWeekIndex]
+    const { coaches, isLoading: loadingCoaches } = useValidatedCoaches()
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedDay, setSelectedDay] = useState<string>(format(new Date(), 'yyyy-MM-dd'))
+    const currentWeek = getWeekInterval(selectedDate);
     const [selectedCollaboratorId, setSelectedCollaboratorId] = useState<number | null>(null)
 
 
-    const trainings = mockSchedules
-        .filter((schedule) => {
+    const { schedules, isLoading } = useSchedules(currentWeek.startDate, currentWeek.endDate);
+
+
+
+    const trainings = schedules
+        .filter((schedule: any) => {
             const trainingDate = new Date(schedule.start)
-            const inSelectedWeek = trainingDate >= selectedWeek.startDate && trainingDate < selectedWeek.endDate
+            const inSelectedWeek =
+                trainingDate >= currentWeek.startDate &&
+                trainingDate < currentWeek.endDate;
             const matchesDay = !selectedDay || format(trainingDate, 'yyyy-MM-dd') === selectedDay
             const matchesCollaborator = isAdmin
-                ? !selectedCollaboratorId || schedule.coach.id === selectedCollaboratorId
-                : schedule.coach.id === user.id
+                ? !selectedCollaboratorId || schedule.trainer.id === selectedCollaboratorId
+                : schedule.trainer.id === user.id
             return inSelectedWeek && matchesDay && matchesCollaborator
         })
-        .map((schedule) => ({
+        .map((schedule: any) => ({
             id: String(schedule.id),
-            startTime: format(schedule.start, 'HH:mm'),
-            endTime: format(schedule.end, 'HH:mm'),
-            title: schedule.trainingPlanning.title,
-            notes: undefined,
-            collaboratorId: schedule.coach.id,
-            coachName: schedule.coach.name,
+            startTime: format(new Date(schedule.start), 'HH:mm'),
+            endTime: format(new Date(schedule.end), 'HH:mm'),
+            title: schedule.trainingPlanning?.trainingType?.name ?? 'Sem título',
+            notes: schedule.trainingPlanning?.description ?? '',
+            collaboratorId: schedule.trainer.id,
+            coachName: schedule.trainer.name,
             athleteName: schedule.athlete.name,
-            date: format(schedule.start, 'yyyy-MM-dd'),
-            color: schedule.coach.schedulerColor,
+            date: format(new Date(schedule.start), 'yyyy-MM-dd'),
+            color: schedule.trainer.schedulerColor,
         }))
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background, paddingHorizontal: 16, paddingTop: 50 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
 
+                <TouchableOpacity onPress={() => setSelectedDate(prev => addDays(prev, -7))}>
+                    <ChevronLeft color={colors.primary} size={24} style={{ marginHorizontal: 12 }} />
+                </TouchableOpacity>
+
+
+                <View style={{ flex: 1 }}>
+                    <DatePickerInput
+                        label="Semana de"
+                        value={selectedDate}
+                        onChange={setSelectedDate}
+                    />
+                </View>
+
+                <TouchableOpacity onPress={() => setSelectedDate(prev => addDays(prev, 7))}>
+                    <ChevronRight color={colors.primary} size={24} style={{ marginHorizontal: 12 }} />
+                </TouchableOpacity>
+            </View>
             <WeekDaySelector
                 selectedDay={selectedDay}
                 onSelectDay={setSelectedDay}
-                startDate={selectedWeek.startDate}
+                startDate={currentWeek.startDate}
             />
 
 
@@ -89,12 +111,12 @@ export default function ScheduleScreen() {
                 <CollaboratorPicker
                     selectedId={selectedCollaboratorId}
                     onSelect={setSelectedCollaboratorId}
-                    collaborators={mockCoaches}
+                    collaborators={coaches}
                 />
             )}
 
 
-            <ScheduleComponent trainings={trainings} colors={colors} coaches={mockCoaches} />
+            <ScheduleComponent trainings={trainings} colors={colors} coaches={coaches as any} />
 
             <TouchableOpacity
                 style={{
@@ -115,7 +137,7 @@ export default function ScheduleScreen() {
                     zIndex: 10,
                 }}
                 onPress={() => {
-                    console.log('Abrir modal de criação de treino')
+                    navigation.navigate('ScheduleCreate');
                 }}
             >
                 <Plus color="#fff" size={28} />
@@ -123,4 +145,5 @@ export default function ScheduleScreen() {
         </View>
     )
 }
+
 

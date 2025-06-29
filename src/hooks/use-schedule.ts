@@ -1,4 +1,5 @@
-import { createSchedule, CreateScheduleDto } from "../services/schedule-service";
+import useSWR from "swr";
+import { createSchedule, CreateScheduleDto, getSchedules } from "../services/schedule-service";
 
 export function useCreateSchedule() {
     async function submit(data: CreateScheduleDto): Promise<{ id: string } | null> {
@@ -11,4 +12,16 @@ export function useCreateSchedule() {
     }
 
     return { submit };
+}
+export function useSchedules(start: Date, end: Date) {
+    const { data, error, isLoading } = useSWR(
+        ['schedules', start.toISOString(), end.toISOString()],
+        () => getSchedules(start, end)
+    );
+
+    return {
+        schedules: data?.schedules || [],
+        isLoading,
+        error,
+    };
 }

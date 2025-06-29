@@ -12,7 +12,7 @@ export default function CollaboratorsScreen() {
     const { coaches, isLoading } = useValidatedCoaches()
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 
-    const listData = coaches.map((coach: Coach) => ({
+    const listData = coaches.map((coach: any) => ({
         id: String(coach.id),
         name: coach.name,
         email: coach.email,

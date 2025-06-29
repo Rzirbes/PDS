@@ -1,3 +1,4 @@
+import { format } from "date-fns"
 import { apiFetch } from "./api"
 
 export interface CreateTrainingPlanningDto {
@@ -27,4 +28,15 @@ export async function createSchedule(data: CreateScheduleDto) {
         method: 'POST',
         body: JSON.stringify(payload),
     })
+}
+
+export async function getSchedules(start: Date, end: Date) {
+    const query = new URLSearchParams({
+        startDate: format(start, 'yyyy-MM-dd'),
+        endDate: format(end, 'yyyy-MM-dd'),
+    });
+
+    return await apiFetch(`/schedule?${query.toString()}`, {
+        method: "GET",
+    });
 }

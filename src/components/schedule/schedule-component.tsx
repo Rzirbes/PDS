@@ -86,7 +86,11 @@ function groupOverlappingTrainings(trainings: Training[]): PositionedTraining[][
 
     return groups
 }
-
+function calculateHeight(startTime: string, endTime: string) {
+    const start = getMinutes(startTime)
+    const end = getMinutes(endTime)
+    return (end - start) * PIXELS_PER_MINUTE
+}
 export default function ScheduleComponent({ trainings, colors, coaches }: Props) {
     const [visibleGroup, setVisibleGroup] = React.useState<PositionedTraining[] | null>(null)
     const [visibleTraining, setVisibleTraining] = React.useState<PositionedTraining | null>(null)
@@ -100,12 +104,19 @@ export default function ScheduleComponent({ trainings, colors, coaches }: Props)
             <View style={{ flexDirection: 'row', marginTop: 16, minHeight: containerHeight }}>
                 {/* Coluna com as horas */}
                 <View style={{ width: 60, paddingRight: 8 }}>
-                    {Array.from({ length: 22 }, (_, i) => {
+                    {Array.from({ length: 21 }, (_, i) => {
                         const totalMin = startMinutes + i * 50
                         const hour = Math.floor(totalMin / 60).toString().padStart(2, '0')
                         const min = (totalMin % 60).toString().padStart(2, '0')
+
                         return (
-                            <View key={i} style={{ height: 50 * PIXELS_PER_MINUTE, justifyContent: 'center' }}>
+                            <View
+                                key={i}
+                                style={{
+                                    height: 50 * PIXELS_PER_MINUTE, justifyContent: 'flex-start', borderTopWidth: 0.5,
+                                    borderColor: '#333',
+                                }}
+                            >
                                 <Text style={{ color: colors.muted, fontSize: 12 }}>{`${hour}:${min}`}</Text>
                             </View>
                         )
@@ -114,6 +125,19 @@ export default function ScheduleComponent({ trainings, colors, coaches }: Props)
 
                 {/* Área dos Treinos */}
                 <View style={{ flex: 1, position: 'relative' }}>
+                    {Array.from({ length: 21 }, (_, i) => (
+                        <View
+                            key={`line-${i}`}
+                            style={{
+                                position: 'absolute',
+                                top: i * 50 * PIXELS_PER_MINUTE,
+                                left: 0,
+                                right: 0,
+                                height: 0.5,
+                                backgroundColor: '#333',
+                            }}
+                        />
+                    ))}
                     {groupOverlappingTrainings(trainings).map((group, index) => (
                         <React.Fragment key={index}>
                             {group.map((item, innerIndex) => (
@@ -130,6 +154,13 @@ export default function ScheduleComponent({ trainings, colors, coaches }: Props)
                                     coaches={coaches}
                                     groupSize={group.length}
                                     isTopCard={innerIndex === group.length - 1}
+                                    style={{
+                                        position: 'absolute',
+                                        top: calculatePosition(item.startTime),
+                                        height: calculateHeight(item.startTime, item.endTime),
+                                        left: `${(item.offset / item.groupSize) * 100}%`,
+                                        width: `${100 / item.groupSize}%`,
+                                    }}
                                 />
                             ))}
                         </React.Fragment>
