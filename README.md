@@ -11,7 +11,7 @@ Aplicativo mobile desenvolvido com **React Native** para **personal trainers** e
 
 ---
 
-## 🚀 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **React Native (Expo)**
 - **TypeScript**
@@ -26,7 +26,7 @@ Aplicativo mobile desenvolvido com **React Native** para **personal trainers** e
 
 ---
 
-## ✅ Funcionalidades Concluídas (MVP)
+## Funcionalidades Concluídas (MVP)
 
 - ✅ **Login com JWT**
 - ✅ **Persistência de sessão com Keep Connected**
@@ -45,7 +45,7 @@ Aplicativo mobile desenvolvido com **React Native** para **personal trainers** e
 
 ---
 
-## 🔨 Em desenvolvimento
+## Em desenvolvimento
 
 - 🔄 **Integração com banco de dados real (PostgreSQL via Prisma)**
 - ✉️ **Envio de e-mails automatizados**
@@ -54,7 +54,7 @@ Aplicativo mobile desenvolvido com **React Native** para **personal trainers** e
 
 ---
 
-## ⚙️ Como Rodar Localmente
+## Como Rodar Localmente
 
 1. Clone o repositório:
 
