@@ -15,15 +15,10 @@ interface Training {
     color: string
     coachName: string
     athleteName: string
+    pse?: number;
+
 }
 
-interface TrainingCardProps {
-    training: PositionedTraining
-    onPress: () => void
-    style?: ViewStyle
-    isTopCard: boolean
-    groupSize: number
-}
 
 interface Props {
     trainings: Training[]
@@ -43,7 +38,7 @@ export type PositionedTraining = Training & {
 }
 
 const PIXELS_PER_MINUTE = 1.6
-const startMinutes = 330 // Começando às 5:30 da manhã
+const startMinutes = 330
 const totalMinutes = 21 * 50
 const containerHeight = totalMinutes * PIXELS_PER_MINUTE
 

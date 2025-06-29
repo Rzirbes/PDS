@@ -17,6 +17,7 @@ interface Props {
 export function TrainingDetailsModal({ visibleTraining, onClose }: Props) {
     const { colors: themeColors } = useTheme();
     const navigation = useNavigation<any>();
+    console.log('visibleTraining:', JSON.stringify(visibleTraining, null, 2));
 
     if (!visibleTraining) return null;
 
@@ -38,7 +39,8 @@ export function TrainingDetailsModal({ visibleTraining, onClose }: Props) {
     };
 
     const handleFinishTraining = () => {
-        console.log('Finalizar atendimento:', visibleTraining);
+        onClose();
+        navigation.navigate('FinishTraining', { training: visibleTraining });
     };
 
     const renderStatusBadge = () => {
@@ -101,8 +103,8 @@ export function TrainingDetailsModal({ visibleTraining, onClose }: Props) {
                     </TouchableOpacity>
 
                     <Text style={{ color: 'white', fontWeight: 'bold', marginTop: 8 }}>PSE Planejada</Text>
-                    <Text style={{ color: 'yellow' }}>{visibleTraining.notes ?? 'Não informada'}</Text>
 
+                    <Text style={{ color: 'orange' }}>{visibleTraining.pse}</Text>
                     <Text style={{ color: 'white', fontWeight: 'bold', marginTop: 8 }}>Status</Text>
                     {renderStatusBadge()}
 

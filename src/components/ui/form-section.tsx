@@ -15,7 +15,19 @@ export function FormSection({ title, children, style, initialOpen = true }: Prop
     const [isOpen, setIsOpen] = useState(initialOpen);
 
     return (
-        <View style={[{ marginBottom: 16 }, style]}>
+        <View
+            style={[
+                {
+                    marginBottom: 16,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: 8,
+                    padding: 12,
+                    backgroundColor: colors.background,
+                },
+                style,
+            ]}
+        >
             <TouchableOpacity
                 onPress={() => setIsOpen(!isOpen)}
                 style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}
@@ -32,3 +44,4 @@ export function FormSection({ title, children, style, initialOpen = true }: Prop
         </View>
     );
 }
+

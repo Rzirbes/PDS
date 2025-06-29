@@ -22,6 +22,7 @@ import EditAthleteWrapper from '../screens/athletes/edit-athlete-wrapper';
 import AthleteDetailsWrapper from '../screens/athletes/athlete-details-wrapper';
 import CreateAthleteScreen from '../screens/athletes/create-athlete-screen';
 import ScheduleFormScreen from '../screens/schedule/schedule-form-screen';
+import { FinishTrainingScreen } from '../screens/schedule/finish-training-screen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -109,6 +110,7 @@ export default function Routes() {
             <Stack.Screen name="CollaboratorDetails" component={CollaboratorInfoWrapper} />
             <Stack.Screen name="CreateAthlete" component={CreateAthleteScreen} />
             <Stack.Screen name="ScheduleCreate" component={ScheduleFormScreen} />
+            <Stack.Screen name="FinishTraining" component={FinishTrainingScreen} />
           </>
         ) : (
           <Stack.Screen name="Login" component={LoginScreen} />

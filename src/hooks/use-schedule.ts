@@ -16,9 +16,12 @@ export function useCreateSchedule() {
 export function useSchedules(start: Date, end: Date) {
     const { data, error, isLoading } = useSWR(
         ['schedules', start.toISOString(), end.toISOString()],
-        () => getSchedules(start, end)
-    );
 
+        () => {
+            console.log("Data de início no useSchedule:" + start + " " + "Data final: " + end)
+            return getSchedules(start, end)
+        }
+    );
     return {
         schedules: data?.schedules || [],
         isLoading,

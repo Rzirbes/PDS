@@ -1,4 +1,4 @@
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addWeeks, isBefore, subWeeks, getMinutes } from 'date-fns'
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, addWeeks, isBefore, subWeeks, getMinutes, setMilliseconds, setSeconds, setMinutes, setHours } from 'date-fns'
 
 export function generateWeeklyIntervalsForMonth(referenceDate = new Date()) {
     const weeks: { startDate: Date; endDate: Date }[] = []
@@ -37,10 +37,13 @@ export function mergeDateAndTime(date: Date, time: string): Date {
 }
 
 
-export function getWeekInterval(referenceDate: Date) {
-    return {
-        startDate: startOfWeek(referenceDate, { weekStartsOn: 1 }),
-        endDate: endOfWeek(referenceDate, { weekStartsOn: 1 }),
-    };
+export function getWeekInterval(date: Date) {
+    const startDate = startOfWeek(date, { weekStartsOn: 1 })
+    const endDate = setMilliseconds(
+        setSeconds(setMinutes(setHours(endOfWeek(date, { weekStartsOn: 1 }), 23), 59), 59),
+        999
+    )
+
+    return { startDate, endDate }
 }
 

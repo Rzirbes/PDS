@@ -32,8 +32,8 @@ export async function createSchedule(data: CreateScheduleDto) {
 
 export async function getSchedules(start: Date, end: Date) {
     const query = new URLSearchParams({
-        startDate: format(start, 'yyyy-MM-dd'),
-        endDate: format(end, 'yyyy-MM-dd'),
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
     });
 
     return await apiFetch(`/schedule?${query.toString()}`, {

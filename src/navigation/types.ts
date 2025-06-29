@@ -10,4 +10,5 @@ export type RootStackParamList = {
   Schedule: undefined;
   CreateAthlete: undefined;
   ScheduleCreate: undefined;
+  FinishTraining: { athleteId: string };
 };
