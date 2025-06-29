@@ -15,7 +15,6 @@ Aplicativo mobile desenvolvido com **React Native** para **personal trainers** e
 
 - **React Native (Expo)**
 - **TypeScript**
-- **NativeWind** (Tailwind para React Native)
 - **React Navigation**
 - **react-native-svg-charts** (Gráficos)
 - **react-native-tab-view** (Navegação por abas)
@@ -23,7 +22,7 @@ Aplicativo mobile desenvolvido com **React Native** para **personal trainers** e
 - **SWR** (Cache de dados e fetcher)
 - **AsyncStorage** (Persistência de tokens)
 - **API personalizada com `apiFetch`** (Controle central de autenticação + refresh token)
-- Integração futura com **Next.js (backend)** e **PostgreSQL (via Prisma)**
+- Integração futura com **Nest.js (backend)** e **PostgreSQL (via Prisma)**
 
 ---
 
