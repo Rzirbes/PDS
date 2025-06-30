@@ -1,4 +1,4 @@
-export type TrainingType = {
-    id: string
-    name: string
+export interface TrainingType {
+    id: string;
+    name: string;
 }
