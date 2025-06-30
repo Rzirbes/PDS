@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     ScrollView,
@@ -9,6 +9,9 @@ import {
     Platform,
     TouchableWithoutFeedback,
     Keyboard,
+    TextInput,
+    Alert,
+    Modal,
 } from 'react-native';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { useTheme } from '../../context/theme-context';
@@ -18,16 +21,27 @@ import { DatePickerInput } from '../../components/ui/date-picker-input';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RouteProp, useRoute } from '@react-navigation/native';
+import { SliderField } from '../../components/ui/slider-field';
+import { useDayWellBeing } from '../../hooks/use-day-well-being';
+import { WellBeingForm } from '../../components/training/well-being-form';
+import { mutate } from 'swr';
 
 type RouteParams = {
     training: {
+        id: string;
         date: string;
         title: string;
         startTime: string;
         endTime: string;
+        pse: number;
         notes?: string;
+        coachId?: string;
+        athleteId?: string;
+        duration?: string;
     };
 };
+
+
 
 export const trainingSchema = z.object({
     date: z.coerce.date({
@@ -48,11 +62,10 @@ export function FinishTrainingScreen() {
     const { colors } = useTheme();
     const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
     const training = route.params?.training;
-
+    const { summary } = useDayWellBeing(training.athleteId, new Date(training.date))
     const startMin = getMinutes(training.startTime)
     const endMin = getMinutes(training.endTime)
-    const duration = startMin && endMin ? endMin - startMin : 0
-
+    const [showWellBeingForm, setShowWellBeingForm] = useState(false)
 
     const {
         control,
@@ -75,12 +88,22 @@ export function FinishTrainingScreen() {
 
     useEffect(() => {
         if (training) {
+            const getMinutes = (time: string) => {
+                const [h, m] = time.split(':').map(Number);
+                return h * 60 + m;
+            };
+
+            const duration =
+                training.startTime && training.endTime
+                    ? getMinutes(training.endTime) - getMinutes(training.startTime)
+                    : 0;
             reset({
                 date: new Date(training.date),
                 type: training.title || '',
                 duration,
                 psr: 0,
-                pse: 0,
+                pse: training.pse || 0,
+                description: training.notes || '',
                 pains: [{ location: '' }],
                 injuries: [{ type: '' }],
             });
@@ -104,68 +127,150 @@ export function FinishTrainingScreen() {
     const onSubmit = (data: any) => {
         console.log(data);
     };
-
+    console.log('Training recebido:', training)
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-                <KeyboardAvoidingView
-                    style={{ flex: 1 }}
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                    keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+            <View style={{ flex: 1 }}>
+
+
+                <Modal
+                    visible={showWellBeingForm}
+                    animationType="slide"
+                    onRequestClose={() => setShowWellBeingForm(false)}
                 >
-                    <ScrollView contentContainerStyle={{ padding: 16 }}>
-                        <FormSection title="Cadastrar Treino Concluído">
-                            <Controller
-                                control={control}
-                                name="date"
-                                render={({ field: { value, onChange }, fieldState: { error } }) => (
-                                    <DatePickerInput
-                                        label="Data do Treino"
-                                        value={value}
-                                        onChange={onChange}
-                                        error={error?.message}
+                    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+                        <ScrollView contentContainerStyle={{ padding: 16 }}>
+                            <FormSection title="Avaliação de Bem-Estar">
+                                {training.athleteId ? (
+                                    <WellBeingForm
+                                        athleteId={training.athleteId}
+                                        onCancel={() => setShowWellBeingForm(false)}
+                                        onSuccess={async () => {
+                                            await mutate([
+                                                `athlete-${training.athleteId}-well-being-${new Date(training.date).toISOString()}`,
+                                                training.athleteId,
+                                                new Date(training.date)
+                                            ])
+                                            setShowWellBeingForm(false)
+                                        }}
                                     />
+                                ) : (
+                                    <Text style={{ color: 'red' }}>
+                                        ⚠️ Treino sem atleta vinculado. Não é possível preencher bem-estar.
+                                    </Text>
                                 )}
-                            />
-                            <InputField control={control} name="type" label="Tipo de Treino" placeholder="Livre, Força..." />
-                            <InputField control={control} name="duration" label="Duração (minutos)" keyboardType="numeric" />
-                            <InputField control={control} name="description" label="Resumo" placeholder="Resumo..." multiline />
-                        </FormSection>
+                            </FormSection>
+                        </ScrollView>
+                    </SafeAreaView>
+                </Modal>
+                <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+                    <KeyboardAvoidingView
+                        style={{ flex: 1 }}
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+                    >
+                        <ScrollView contentContainerStyle={{ padding: 16 }}>
+                            <FormSection title="Formulário de Bem estar">
+                                {summary.length === 0 && (
+                                    <>
+                                        <Text style={{ color: 'red', marginBottom: 10 }}>
+                                            ⚠️ O questionário de bem-estar ainda não foi preenchido para este dia.
+                                        </Text>
+                                        <Button
+                                            title="Informar Avaliação"
+                                            color={colors.primary}
+                                            onPress={() => setShowWellBeingForm(true)}
+                                        />
+                                    </>
+                                )}
+                            </FormSection>
+                            <FormSection title="Cadastrar Treino Concluído">
+                                <Controller
+                                    control={control}
+                                    name="date"
+                                    render={({ field: { value, onChange }, fieldState: { error } }) => (
+                                        <DatePickerInput
+                                            label="Data do Treino"
+                                            value={value}
+                                            onChange={onChange}
+                                            error={error?.message}
+                                        />
+                                    )}
+                                />
+                                <InputField control={control} name="type" label="Tipo de Treino" placeholder="Livre, Força..." />
+                                <Controller
+                                    control={control}
+                                    name="duration"
+                                    render={({ field: { value, onChange }, fieldState: { error } }) => (
+                                        <View>
+                                            <Text style={{ color: colors.text, marginBottom: 4 }}>Duração</Text>
+                                            <TextInput
+                                                value={value?.toString() ?? ''}
+                                                onChangeText={text => onChange(Number(text))}
+                                                keyboardType="numeric"
+                                                placeholder="Duração"
+                                                style={{
+                                                    height: 44,
+                                                    borderWidth: 1,
+                                                    borderRadius: 8,
+                                                    paddingHorizontal: 12,
+                                                    color: colors.text,
+                                                    borderColor: colors.border,
+                                                    backgroundColor: colors.surface,
+                                                    marginBottom: 14
+                                                }}
+                                            />
+                                        </View>
 
-                        <FormSection title="Cadastrar Dores">
-                            {painFields.map((item, index) => (
-                                <View key={item.id} style={{ marginBottom: 8 }}>
-                                    <InputField
-                                        control={control}
-                                        name={`pains.${index}.location`}
-                                        label={`Dor ${index + 1}`}
-                                        placeholder="Local da dor"
-                                    />
-                                    <Button color={colors.danger} title="Remover" onPress={() => removePain(index)} />
-                                </View>
-                            ))}
-                            <Button title="Adicionar Dor" color={colors.primary} onPress={() => addPain({ location: '' })} />
-                        </FormSection>
+                                    )}
+                                />
+                                <InputField control={control} name="description" label="Resumo" placeholder="Resumo..." multiline />
+                                <SliderField control={control} name="psr" label="PSR" />
+                                <SliderField control={control} name="pse" label="PSE" />
+                            </FormSection>
 
-                        <FormSection title="Cadastrar Lesões">
-                            {injuryFields.map((item, index) => (
-                                <View key={item.id} style={{ marginBottom: 8 }}>
-                                    <InputField
-                                        control={control}
-                                        label={`Lesão ${index + 1}`}
-                                        name={`injuries.${index}.type`}
-                                        placeholder="Tipo de lesão"
-                                    />
-                                    <Button color={colors.danger} title="Remover" onPress={() => removeInjury(index)} />
-                                </View>
-                            ))}
-                            <Button title="Adicionar Lesão" color={colors.primary} onPress={() => addInjury({ type: '' })} />
-                        </FormSection>
+                            <FormSection title="Cadastrar Dores">
+                                {painFields.map((item, index) => (
+                                    <View key={item.id} style={{ marginBottom: 8 }}>
+                                        <InputField
+                                            control={control}
+                                            name={`pains.${index}.location`}
+                                            label={`Dor ${index + 1}`}
+                                            placeholder="Local da dor"
+                                        />
+                                        <Button color={colors.danger} title="Remover" onPress={() => removePain(index)} />
+                                    </View>
+                                ))}
+                                <Button title="Adicionar Dor" color={colors.primary} onPress={() => addPain({ location: '' })} />
+                            </FormSection>
 
-                        <Button title="Salvar Treino" color={colors.success} onPress={handleSubmit(onSubmit)} />
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </SafeAreaView>
+                            <FormSection title="Cadastrar Lesões">
+                                {injuryFields.map((item, index) => (
+                                    <View key={item.id} style={{ marginBottom: 8 }}>
+                                        <InputField
+                                            control={control}
+                                            label={`Lesão ${index + 1}`}
+                                            name={`injuries.${index}.type`}
+                                            placeholder="Tipo de lesão"
+                                        />
+                                        <Button color={colors.danger} title="Remover" onPress={() => removeInjury(index)} />
+                                    </View>
+                                ))}
+                                <Button title="Adicionar Lesão" color={colors.primary} onPress={() => addInjury({ type: '' })} />
+                            </FormSection>
+
+
+                            <Button title="Salvar Treino" color={colors.success} onPress={() => {
+                                if (summary.length === 0) {
+                                    Alert.alert("Aviso", "Preencha o questionário de bem-estar antes de finalizar o treino.");
+                                    return;
+                                }
+                                handleSubmit(onSubmit)();
+                            }} />
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                </SafeAreaView>
+            </View>
         </TouchableWithoutFeedback>
     );
 }

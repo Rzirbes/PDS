@@ -73,10 +73,11 @@ export default function ScheduleScreen() {
             startTime: format(parseISO(schedule.start), 'HH:mm'),
             endTime: format(parseISO(schedule.end), 'HH:mm'),
             title: schedule.trainingPlanning?.description || '',
-            date: format(parseISO(schedule.start), 'yyyy-MM-dd'),
+            date: parseISO(schedule.start),
             color: schedule.trainer.schedulerColor || '#ccc',
             coachName: schedule.trainer.name,
             athleteName: schedule.athlete.name,
+            athleteId: schedule.athlete.id,
             collaboratorId: schedule.trainer.id,
             pse: schedule.trainingPlanning?.pse,
         }))

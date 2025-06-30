@@ -12,6 +12,7 @@ interface Training {
     notes?: string
     collaboratorId: number
     date: string
+    athleteId: string;
     color: string
     coachName: string
     athleteName: string

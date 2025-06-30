@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { JSX, useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, TouchableWithoutFeedback, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '../../context/theme-context';
 
@@ -7,14 +7,19 @@ type Option = {
     value: string;
 };
 
-type SingleSelectProps = {
+interface SingleSelectProps {
     label: string;
-    options: Option[];
-    selectedValue?: string;
+    selectedValue: string;
     onChange: (value: string) => void;
-};
+    options: {
+        value: string;
+        label: string;
+        icon?: JSX.Element;
+    }[];
+    error?: string;
+}
 
-export default function SingleSelect({ label, options, selectedValue, onChange }: SingleSelectProps) {
+export default function SingleSelect({ label, options, selectedValue, onChange, error }: SingleSelectProps) {
     const { colors } = useTheme();
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -35,7 +40,11 @@ export default function SingleSelect({ label, options, selectedValue, onChange }
                     {selectedValue ? options.find((opt) => opt.value === selectedValue)?.label : 'Selecione...'}
                 </Text>
             </TouchableOpacity>
-
+            {error && (
+                <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                    {error}
+                </Text>
+            )}
             <Modal visible={modalVisible} transparent animationType="slide">
                 <TouchableOpacity
                     activeOpacity={1}
@@ -53,7 +62,14 @@ export default function SingleSelect({ label, options, selectedValue, onChange }
                                         style={styles.optionRow}
                                         onPress={() => handleSelect(option.value)}
                                     >
-                                        <Text style={{ color: colors.text }}>{option.label}</Text>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                            {option.icon}
+                                            {typeof option.label === 'string' ? (
+                                                <Text style={{ color: colors.text }}>{option.label}</Text>
+                                            ) : (
+                                                option.label
+                                            )}
+                                        </View>
                                     </TouchableOpacity>
                                 ))}
                             </ScrollView>

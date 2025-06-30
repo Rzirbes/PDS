@@ -40,7 +40,12 @@ export function TrainingDetailsModal({ visibleTraining, onClose }: Props) {
 
     const handleFinishTraining = () => {
         onClose();
-        navigation.navigate('FinishTraining', { training: visibleTraining });
+        navigation.navigate('FinishTraining', {
+            training: {
+                ...visibleTraining,
+                athleteId: visibleTraining.athleteId,
+            },
+        });
     };
 
     const renderStatusBadge = () => {
