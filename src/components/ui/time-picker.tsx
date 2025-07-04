@@ -21,10 +21,6 @@ interface TimePickerInputProps {
 
 export function TimePickerInput({ label, value, onChange, error }: TimePickerInputProps) {
     const [showPicker, setShowPicker] = React.useState(false);
-    const { colors } = useTheme();
-
-    const time = value || '00:00';
-
     const parseTimeString = (timeStr: string) => {
         const [hours, minutes] = timeStr.split(':').map(Number);
         const date = new Date();
@@ -32,8 +28,18 @@ export function TimePickerInput({ label, value, onChange, error }: TimePickerInp
         date.setMinutes(minutes || 0);
         return date;
     };
+    const [tempDate, setTempDate] = React.useState(parseTimeString(value || '00:00'));
+    const { colors } = useTheme();
 
-    const handleChange = (_: any, selectedDate?: Date) => {
+
+    const handleConfirmIOS = () => {
+        const hours = tempDate.getHours().toString().padStart(2, '0');
+        const minutes = tempDate.getMinutes().toString().padStart(2, '0');
+        onChange(`${hours}:${minutes}`);
+        setShowPicker(false);
+    };
+
+    const handleChangeAndroid = (_: any, selectedDate?: Date) => {
         setShowPicker(false);
         if (selectedDate) {
             const hours = selectedDate.getHours().toString().padStart(2, '0');
@@ -47,8 +53,11 @@ export function TimePickerInput({ label, value, onChange, error }: TimePickerInp
             <Text style={{ color: colors.text, marginBottom: 4 }}>{label}</Text>
 
             <TextInput
-                value={time}
-                onPressIn={() => setShowPicker(true)}
+                value={value || '00:00'}
+                onPressIn={() => {
+                    setTempDate(parseTimeString(value || '00:00'));
+                    setShowPicker(true);
+                }}
                 editable={false}
                 placeholder={label}
                 placeholderTextColor={colors.muted}
@@ -68,9 +77,9 @@ export function TimePickerInput({ label, value, onChange, error }: TimePickerInp
                     <DateTimePicker
                         mode="time"
                         display="default"
-                        value={parseTimeString(time)}
+                        value={parseTimeString(value || '00:00')}
                         is24Hour
-                        onChange={handleChange}
+                        onChange={handleChangeAndroid}
                     />
                 ) : (
                     <Modal transparent animationType="fade">
@@ -94,10 +103,28 @@ export function TimePickerInput({ label, value, onChange, error }: TimePickerInp
                                 <DateTimePicker
                                     mode="time"
                                     display="spinner"
-                                    value={parseTimeString(time)}
+                                    value={tempDate}
                                     is24Hour
-                                    onChange={handleChange}
+                                    onChange={(_, selectedDate) => {
+                                        if (selectedDate) {
+                                            setTempDate(selectedDate);
+                                        }
+                                    }}
                                 />
+                                <TouchableOpacity
+                                    onPress={handleConfirmIOS}
+                                    style={{
+                                        marginTop: 16,
+                                        backgroundColor: colors.primary,
+                                        padding: 10,
+                                        borderRadius: 8,
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <Text style={{ color: colors.background, fontWeight: 'bold' }}>
+                                        Confirmar
+                                    </Text>
+                                </TouchableOpacity>
                             </Pressable>
                         </Pressable>
                     </Modal>
@@ -108,3 +135,4 @@ export function TimePickerInput({ label, value, onChange, error }: TimePickerInp
         </View>
     );
 }
+

@@ -1,9 +1,7 @@
-// components/DatePickerInput.tsx
 import React from 'react';
 import {
   View,
   Text,
-  TextInput,
   Modal,
   Platform,
   TouchableOpacity,
@@ -22,14 +20,22 @@ interface DatePickerInputProps {
 
 export function DatePickerInput({ label, value, onChange, error }: DatePickerInputProps) {
   const [showPicker, setShowPicker] = React.useState(false);
+  const [tempDate, setTempDate] = React.useState<Date>(value ?? new Date());
   const { colors } = useTheme();
 
   const formattedDate = value ? format(value, 'dd MMM yyyy') : 'Selecionar data';
 
-
   const handleChange = (_: any, selectedDate?: Date) => {
+    if (selectedDate) setTempDate(selectedDate);
+    if (Platform.OS === 'android' && selectedDate) {
+      onChange(selectedDate);
+      setShowPicker(false);
+    }
+  };
+
+  const confirmIOSDate = () => {
+    onChange(tempDate);
     setShowPicker(false);
-    if (selectedDate) onChange(selectedDate);
   };
 
   return (
@@ -84,10 +90,26 @@ export function DatePickerInput({ label, value, onChange, error }: DatePickerInp
                 <DateTimePicker
                   mode="date"
                   display="spinner"
-                  value={value instanceof Date && !isNaN(value.getTime()) ? value : new Date()}
-
-                  onChange={handleChange}
+                  value={tempDate}
+                  onChange={(e, selectedDate) => {
+                    if (selectedDate) setTempDate(selectedDate);
+                  }}
                 />
+
+                <TouchableOpacity
+                  onPress={confirmIOSDate}
+                  style={{
+                    marginTop: 16,
+                    backgroundColor: colors.primary,
+                    padding: 10,
+                    borderRadius: 8,
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ color: colors.background, fontWeight: 'bold' }}>
+                    Confirmar
+                  </Text>
+                </TouchableOpacity>
               </Pressable>
             </Pressable>
           </Modal>
