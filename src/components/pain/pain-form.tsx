@@ -1,7 +1,15 @@
-// components/forms/PainForm.tsx
-
 import React from 'react';
-import { View, Text, Button } from 'react-native';
+import {
+    View,
+    Text,
+    Button,
+    SafeAreaView,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    TouchableWithoutFeedback,
+    Keyboard,
+} from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,8 +22,9 @@ import { enumToOptions } from '../../utils/enum-top-options';
 import { BodySideLabel, InjuryContextLabel } from '../../enums/injury';
 import TextArea from '../ui/text-area';
 import { TextField } from '../ui/text-field';
+import { SliderField } from '../ui/slider-field';
 
-const painSchema = z.object({
+export const painSchema = z.object({
     date: z.date(),
     bodyRegion: z.string().min(1, 'Local da dor é obrigatório'),
     bodySide: z.nativeEnum(BodySide),
@@ -45,93 +54,96 @@ export function PainForm({ defaultValues, onSubmit }: Props) {
     });
 
     return (
-        <View style={{ gap: 12 }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Dor muscular</Text>
+        <SafeAreaView style={{ flex: 1 }}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                style={{ flex: 1 }}
+            >
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <ScrollView contentContainerStyle={{ padding: 16 }}>
+                        <View style={{ gap: 12 }}>
+                            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Dor muscular</Text>
 
-            <Controller
-                control={control}
-                name="date"
-                render={({ field }) => (
-                    <DatePickerInput
-                        label="Data da dor"
-                        value={field.value}
-                        onChange={field.onChange}
-                        error={errors.date?.message}
-                    />
-                )}
-            />
+                            <Controller
+                                control={control}
+                                name="date"
+                                render={({ field }) => (
+                                    <DatePickerInput
+                                        label="Data da dor"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        error={errors.date?.message}
+                                    />
+                                )}
+                            />
 
-            <Controller
-                control={control}
-                name="bodyRegion"
-                render={({ field }) => (
-                    <TextField
-                        label="Local da Dor"
-                        placeholder="Ex: posterior da coxa, lombar..."
-                        value={field.value}
-                        onChangeText={field.onChange}
-                        error={errors.bodyRegion?.message}
-                    />
-                )}
-            />
+                            <Controller
+                                control={control}
+                                name="bodyRegion"
+                                render={({ field }) => (
+                                    <TextField
+                                        label="Local da Dor"
+                                        placeholder="Ex: posterior da coxa, lombar..."
+                                        value={field.value}
+                                        onChangeText={field.onChange}
+                                        error={errors.bodyRegion?.message}
+                                    />
+                                )}
+                            />
 
-            <Controller
-                control={control}
-                name="bodySide"
-                render={({ field }) => (
-                    <SingleSelect
-                        label="Lado"
-                        selectedValue={field.value}
-                        onChange={field.onChange}
-                        options={enumToOptions(BodySideLabel)}
-                        error={errors.bodySide?.message}
-                    />
-                )}
-            />
+                            <Controller
+                                control={control}
+                                name="bodySide"
+                                render={({ field }) => (
+                                    <SingleSelect
+                                        label="Lado"
+                                        selectedValue={field.value}
+                                        onChange={field.onChange}
+                                        options={enumToOptions(BodySideLabel)}
+                                        error={errors.bodySide?.message}
+                                    />
+                                )}
+                            />
 
-            <Controller
-                control={control}
-                name="intensity"
-                render={({ field }) => (
-                    <TextField
-                        label="Intensidade (0 a 10)"
-                        keyboardType="numeric"
-                        value={field.value?.toString()}
-                        onChangeText={(text) => field.onChange(Number(text))}
-                        error={errors.intensity?.message}
-                    />
-                )}
-            />
+                            <SliderField
+                                control={control}
+                                name="intensity"
+                                label="Intensidade"
+                            />
 
-            <Controller
-                control={control}
-                name="occurredDuring"
-                render={({ field }) => (
-                    <SingleSelect
-                        label="Ocorreu durante"
-                        selectedValue={field.value}
-                        onChange={field.onChange}
-                        options={enumToOptions(InjuryContextLabel)}
-                        error={errors.occurredDuring?.message}
-                    />
-                )}
-            />
+                            <Controller
+                                control={control}
+                                name="occurredDuring"
+                                render={({ field }) => (
+                                    <SingleSelect
+                                        label="Ocorreu durante"
+                                        selectedValue={field.value}
+                                        onChange={field.onChange}
+                                        options={enumToOptions(InjuryContextLabel)}
+                                        error={errors.occurredDuring?.message}
+                                    />
+                                )}
+                            />
 
-            <Controller
-                control={control}
-                name="description"
-                render={({ field }) => (
-                    <TextArea
-                        label="Descreva a dor"
-                        placeholder="Resumo geral da dor/lesão"
-                        value={field.value}
-                        onChangeText={field.onChange}
-                        error={errors.description?.message}
-                    />
-                )}
-            />
+                            <Controller
+                                control={control}
+                                name="description"
+                                render={({ field }) => (
+                                    <TextArea
+                                        label="Descreva a dor"
+                                        placeholder="Resumo geral da dor/lesão"
+                                        value={field.value}
+                                        onChangeText={field.onChange}
+                                        error={errors.description?.message}
+                                    />
+                                )}
+                            />
 
-            <Button onPress={handleSubmit(onSubmit)} title="Salvar dor" />
-        </View>
+                            <Button onPress={handleSubmit(onSubmit)} title="Salvar dor" />
+                        </View>
+                    </ScrollView>
+                </TouchableWithoutFeedback>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }

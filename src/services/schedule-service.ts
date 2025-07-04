@@ -40,3 +40,19 @@ export async function getSchedules(start: Date, end: Date) {
         method: "GET",
     });
 }
+
+interface UpdateSchedulePayload {
+    id: string;
+    completed: boolean;
+}
+
+export async function updateSchedule({ id, completed }: UpdateSchedulePayload) {
+    const payload = JSON.stringify({ completed });
+
+    const response = await apiFetch(`/schedule/${id}`, {
+        method: 'PUT',
+        body: payload,
+    });
+
+    return response;
+}

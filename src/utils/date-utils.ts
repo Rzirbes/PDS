@@ -38,12 +38,9 @@ export function mergeDateAndTime(date: Date, time: string): Date {
 
 
 export function getWeekInterval(date: Date) {
-    const startDate = startOfWeek(date, { weekStartsOn: 1 })
-    const endDate = setMilliseconds(
-        setSeconds(setMinutes(setHours(endOfWeek(date, { weekStartsOn: 1 }), 23), 59), 59),
-        999
-    )
-
-    return { startDate, endDate }
+    return {
+        startDate: startOfWeek(date, { weekStartsOn: 0 }), // 👈 domingo
+        endDate: endOfWeek(date, { weekStartsOn: 0 }),     // 👈 sábado
+    }
 }
 

@@ -25,6 +25,7 @@ type FormData = z.infer<typeof wellBeingSchema>
 
 interface WellBeingFormProps {
     athleteId: string
+    dateTraining: Date
     onSuccess?: () => void
     onCancel?: () => void
 }
@@ -37,7 +38,7 @@ export const ratingOptions = [
     { label: 'Excelente', value: '5', icon: () => <Laugh size={20} color="#22c55e" /> },
 ]
 
-export function WellBeingForm({ onCancel, onSuccess, athleteId }: WellBeingFormProps) {
+export function WellBeingForm({ onCancel, onSuccess, athleteId, dateTraining }: WellBeingFormProps) {
     const {
         control,
         handleSubmit,
@@ -64,7 +65,7 @@ export function WellBeingForm({ onCancel, onSuccess, athleteId }: WellBeingFormP
     const handleWellBeingSubmit = async (formData: FormData) => {
         const payload: CaptureWellBeingPayload = {
             athleteId,
-            date: new Date(),
+            date: dateTraining,
             sleep: Number(formData.sleep),
             sleepHours: Number(formData.sleepHours),
             energy: Number(formData.energy),

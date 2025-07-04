@@ -4,7 +4,7 @@ import { TrainingCard } from './training-card'
 import { TrainingGroupModal } from './training-group-modal'
 import { TrainingDetailsModal } from './training-detail-modal'
 
-interface Training {
+export interface Training {
     id: string
     startTime: string
     endTime: string
@@ -17,6 +17,8 @@ interface Training {
     coachName: string
     athleteName: string
     pse?: number;
+    isCompleted?: boolean
+    trainingPlanning: {id: string, trainingType: { id: string } }
 
 }
 
@@ -90,7 +92,7 @@ function calculateHeight(startTime: string, endTime: string) {
 export default function ScheduleComponent({ trainings, colors, coaches }: Props) {
     const [visibleGroup, setVisibleGroup] = React.useState<PositionedTraining[] | null>(null)
     const [visibleTraining, setVisibleTraining] = React.useState<PositionedTraining | null>(null)
-
+    console.log("Console.log do schedule componete: " + visibleTraining?.title)
     function handleOpenTrainingDetails(training: PositionedTraining) {
         setVisibleTraining(training)
     }

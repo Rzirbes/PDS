@@ -1,6 +1,7 @@
 import React from 'react'
 import { Pressable, Text, View, ViewStyle } from 'react-native'
 import { PositionedTraining } from './schedule-component'
+import { useTheme } from '../../context/theme-context'
 
 interface Props {
     training: PositionedTraining
@@ -16,13 +17,13 @@ interface Props {
 
 export function TrainingCard({ training, onPress, coaches, groupSize, isTopCard, style }: Props) {
     const coachColor = coaches.find(c => c.id === training.collaboratorId)?.schedulerColor ?? '#3B82F6'
-
+    const { colors } = useTheme()
     return (
         <Pressable
             onPress={onPress}
             style={[
                 {
-                    backgroundColor: coachColor,
+                    backgroundColor: training.isCompleted ? colors.primary : coachColor,
                     borderRadius: 8,
                     padding: 8,
                     justifyContent: 'center',
@@ -34,6 +35,7 @@ export function TrainingCard({ training, onPress, coaches, groupSize, isTopCard,
                     shadowRadius: 4,
                     opacity: isTopCard ? 1 : 0.85,
                     position: 'absolute',
+                    borderColor: training.isCompleted ? '#10B981' : colors.primary,
                 },
                 style,
             ]}

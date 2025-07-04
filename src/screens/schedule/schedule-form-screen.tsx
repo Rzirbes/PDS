@@ -12,13 +12,14 @@ import {
     TouchableWithoutFeedback,
     KeyboardAvoidingView,
     Keyboard,
+    Alert,
 } from 'react-native';
 import { useForm, Controller, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Slider from '@react-native-community/slider';
-import { useCreateSchedule } from '../../hooks/use-schedule';
+import { getSchedulesKey, useCreateSchedule } from '../../hooks/use-schedule';
 import { useTheme } from '../../context/theme-context';
 import SingleSelect from '../../components/ui/single-select';
 import { useAthletes } from '../../hooks/use-athlete';
@@ -27,6 +28,8 @@ import { useTrainingTypes } from '../../hooks/use-training-types';
 import { TimePickerInput } from '../../components/ui/time-picker';
 import { DatePickerInput } from '../../components/ui/date-picker-input';
 import { useNavigation } from '@react-navigation/native';
+import { getWeekInterval } from '../../utils/date-utils';
+import { mutate } from 'swr';
 
 const scheduleSchema = z.object({
     date: z.date(),
@@ -149,11 +152,14 @@ export default function ScheduleFormScreen() {
                 },
             };
 
+
             const response = await submit(dto);
-            console.log('Agendamento criado com sucesso:', response);
+            const { startDate, endDate } = getWeekInterval(new Date(date));
+            mutate(getSchedulesKey(startDate, endDate));
+            Alert.alert('Agendamento criado com sucesso!');
             navigation.goBack();
         } catch (err: any) {
-            console.error('Erro ao criar agendamento:', err.message);
+            Alert.alert('Erro ao criar agendamento:', err.message);
         }
     };
 

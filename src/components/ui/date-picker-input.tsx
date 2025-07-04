@@ -15,7 +15,7 @@ import { useTheme } from '../../context/theme-context';
 
 interface DatePickerInputProps {
   label: string;
-  value: Date;
+  value?: Date | null;
   onChange: (value: Date) => void;
   error?: string;
 }
@@ -24,7 +24,8 @@ export function DatePickerInput({ label, value, onChange, error }: DatePickerInp
   const [showPicker, setShowPicker] = React.useState(false);
   const { colors } = useTheme();
 
-  const formattedDate = format(value, 'dd MMM yyyy');
+  const formattedDate = value ? format(value, 'dd MMM yyyy') : 'Selecionar data';
+
 
   const handleChange = (_: any, selectedDate?: Date) => {
     setShowPicker(false);
@@ -58,7 +59,7 @@ export function DatePickerInput({ label, value, onChange, error }: DatePickerInp
           <DateTimePicker
             mode="date"
             display="default"
-            value={value}
+            value={value ?? new Date()}
             onChange={handleChange}
           />
         ) : (
@@ -83,7 +84,8 @@ export function DatePickerInput({ label, value, onChange, error }: DatePickerInp
                 <DateTimePicker
                   mode="date"
                   display="spinner"
-                  value={value}
+                  value={value instanceof Date && !isNaN(value.getTime()) ? value : new Date()}
+
                   onChange={handleChange}
                 />
               </Pressable>

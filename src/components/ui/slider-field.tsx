@@ -5,7 +5,7 @@ import { useTheme } from '../../context/theme-context';
 import { Text, View } from 'react-native';
 
 interface SliderFieldProps<T extends FieldValues> {
-    control: Control<T>;
+    control: any;
     name: Path<T>;
     label: string;
     min?: number;

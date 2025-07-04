@@ -44,6 +44,7 @@ export function TrainingDetailsModal({ visibleTraining, onClose }: Props) {
             training: {
                 ...visibleTraining,
                 athleteId: visibleTraining.athleteId,
+                trainingPlanningUuid: visibleTraining.id
             },
         });
     };

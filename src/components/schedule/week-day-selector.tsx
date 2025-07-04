@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { View, Text, TouchableOpacity, Dimensions } from 'react-native'
-import { format } from 'date-fns'
+import { addDays, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useTheme } from '../../context/theme-context'
 
@@ -20,11 +20,13 @@ export default function WeekDaySelector({ selectedDay, onSelectDay, startDate }:
     const totalSpacing = spacing * 6
     const itemWidth = (screenWidth - 32 - totalSpacing) / 7
 
+
     return (
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
             {Array.from({ length: 7 }).map((_, index) => {
-                const currentDate = new Date(startDate)
-                currentDate.setDate(currentDate.getDate() + index)
+                const currentDate = addDays(startDate, index)
+
+                currentDate.setDate(currentDate.getDate())
                 const dateKey = format(currentDate, 'yyyy-MM-dd')
                 const isSelected = selectedDay === dateKey
 

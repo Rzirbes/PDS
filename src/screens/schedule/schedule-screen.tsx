@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { View, Text, FlatList, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
 import { mockCoaches, mockSchedules, mockTrainingPlannings } from '../../mock'
 import { generateWeeklyIntervalsForMonth, getWeekInterval } from '../../utils/date-utils'
-import { addDays, format, getMinutes, isWithinInterval, parseISO } from 'date-fns'
+import { addDays, format, getMinutes, isWithinInterval, parse, parseISO } from 'date-fns'
 import WeekDaySelector from '../../components/schedule/week-day-selector'
 import ScheduleComponent from '../../components/schedule/schedule-component'
 import CollaboratorPicker from '../../components/ui/collaborator-picker'
@@ -13,9 +13,11 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react-native'
 import { RootStackParamList } from '../../navigation/types'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { useSchedules } from '../../hooks/use-schedule'
+import { getSchedulesKey, useSchedules } from '../../hooks/use-schedule'
 import { DatePickerInput } from '../../components/ui/date-picker-input'
 import { useValidatedCoaches } from '../../hooks/use-validate-coaches'
+import { useCompletedTrainings } from '../../hooks/use-completed-training'
+import { mutate } from 'swr'
 
 
 
@@ -43,14 +45,16 @@ export default function ScheduleScreen() {
 
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedDay, setSelectedDay] = useState(format(new Date(), 'yyyy-MM-dd'));
-    console.log('🔍 Semana atual:', {
-        start: weekInterval.startDate.toISOString(),
-        end: weekInterval.endDate.toISOString(),
-    })
+    // console.log('🔍 Semana atual:', {
+    //     start: weekInterval.startDate.toISOString(),
+    //     end: weekInterval.endDate.toISOString(),
+    // })
     const { schedules, isLoading } = useSchedules(weekInterval.startDate, weekInterval.endDate)
+    console.log('✅ Dados da agenda carregados (schedules):', schedules);
     console.log(schedules)
     const trainings = schedules
         .filter((schedule: any) => {
+            console.log("Procurando tipo de treino " + schedule.trainingPlanning)
             const trainingDate = new Date(schedule.start)
             const trainingDateFormatted = format(trainingDate, 'yyyy-MM-dd')
 
@@ -58,6 +62,8 @@ export default function ScheduleScreen() {
                 start: weekInterval.startDate,
                 end: weekInterval.endDate,
             })
+
+            
             const matchesDay = selectedDay
                 ? trainingDateFormatted === selectedDay
                 : true
@@ -67,12 +73,13 @@ export default function ScheduleScreen() {
                 : schedule.trainer.id === user.id
 
             return inSelectedWeek && matchesDay && matchesCollaborator
+
         })
         .map((schedule: any) => ({
             id: schedule.id,
             startTime: format(parseISO(schedule.start), 'HH:mm'),
             endTime: format(parseISO(schedule.end), 'HH:mm'),
-            title: schedule.trainingPlanning?.description || '',
+            title: schedule.trainingPlanning?.trainingType?.name || '',
             date: parseISO(schedule.start),
             color: schedule.trainer.schedulerColor || '#ccc',
             coachName: schedule.trainer.name,
@@ -80,12 +87,22 @@ export default function ScheduleScreen() {
             athleteId: schedule.athlete.id,
             collaboratorId: schedule.trainer.id,
             pse: schedule.trainingPlanning?.pse,
-        }))
+            trainingPlanning: schedule.trainingPlanning,
+            isCompleted: schedule.completed ?? false,
 
+        }))
+    console.log('🎯 Trainings final:', trainings);
     useEffect(() => {
-        const newInterval = getWeekInterval(selectedDate);
-        setWeekInterval(newInterval);
-    }, [selectedDate]);
+        const newInterval = getWeekInterval(selectedDate)
+
+        const isSameWeek =
+            newInterval.startDate.toDateString() === weekInterval.startDate.toDateString()
+
+        if (!isSameWeek) {
+            setWeekInterval(newInterval)
+            setSelectedDay(format(newInterval.startDate, 'yyyy-MM-dd'))
+        }
+    }, [selectedDate])
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background, paddingHorizontal: 16, paddingTop: 50 }}>
@@ -114,8 +131,20 @@ export default function ScheduleScreen() {
             <WeekDaySelector
                 selectedDay={selectedDay}
                 onSelectDay={(day) => {
+                    const clickedDate = parse(day, 'yyyy-MM-dd', new Date())
+
                     setSelectedDay(day)
-                    setSelectedDate(new Date(day))
+                    setSelectedDate(clickedDate)
+
+                    const clickedWeek = getWeekInterval(clickedDate)
+                    const currentWeek = getWeekInterval(weekInterval.startDate)
+
+                    const isSameWeek =
+                        clickedWeek.startDate.toDateString() === currentWeek.startDate.toDateString()
+
+                    if (!isSameWeek) {
+                        setWeekInterval(clickedWeek)
+                    }
                 }}
                 startDate={weekInterval.startDate}
             />
@@ -149,6 +178,7 @@ export default function ScheduleScreen() {
                     shadowRadius: 3.84,
                     elevation: 5,
                     zIndex: 10,
+
                 }}
                 onPress={() => {
                     navigation.navigate('ScheduleCreate');
