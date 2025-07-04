@@ -18,6 +18,7 @@ import { DatePickerInput } from '../../components/ui/date-picker-input'
 import { useValidatedCoaches } from '../../hooks/use-validate-coaches'
 import { useCompletedTrainings } from '../../hooks/use-completed-training'
 import { mutate } from 'swr'
+import { BackButton } from '../../components/ui/back-button'
 
 
 
@@ -63,7 +64,7 @@ export default function ScheduleScreen() {
                 end: weekInterval.endDate,
             })
 
-            
+
             const matchesDay = selectedDay
                 ? trainingDateFormatted === selectedDay
                 : true
@@ -106,6 +107,12 @@ export default function ScheduleScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background, paddingHorizontal: 16, paddingTop: 50 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                <BackButton />
+                <Text style={{ fontSize: 20, fontWeight: 'bold', color: colors.text, marginLeft: 8 }}>
+                    Agenda
+                </Text>
+            </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
 
                 <TouchableOpacity onPress={() => setSelectedDate(prev => addDays(prev, -7))}>

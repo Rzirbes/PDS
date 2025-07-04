@@ -12,6 +12,7 @@ import {
 
     Alert,
     Modal,
+    TouchableOpacity,
 } from 'react-native';
 
 import { useTheme } from '../../context/theme-context';
@@ -29,6 +30,9 @@ import { PainSection } from '../../components/pain/pain-section';
 import { InjurySection } from '../../components/injury/injury-section';
 import { TrainingDetailsFormSection } from '../../components/schedule/training-details-form-section';
 import { getMinutes } from 'date-fns';
+import { ChevronLeft } from 'lucide-react-native';
+import navigation from '../../navigation';
+import { BackButton } from '../../components/ui/back-button';
 
 type RouteParams = {
     training: Training
@@ -99,6 +103,9 @@ export function FinishTrainingScreen() {
                     onRequestClose={() => setShowWellBeingForm(false)}
                 >
                     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+                        <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+                            <BackButton />
+                        </View>
                         <ScrollView contentContainerStyle={{ padding: 16 }}>
                             <WellBeingForm
                                 athleteId={training.athleteId}

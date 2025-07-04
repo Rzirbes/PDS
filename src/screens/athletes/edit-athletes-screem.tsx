@@ -341,7 +341,7 @@ export default function EdithAthleteScreen() {
             render={({ field: { value, onChange } }) => (
               <SingleSelect
                 label="Pé dominante"
-                selectedValue={value}
+                selectedValue={value ?? ''}
                 onChange={onChange}
                 options={Object.values(DominantFoot).map((foot) => ({
                   value: foot,

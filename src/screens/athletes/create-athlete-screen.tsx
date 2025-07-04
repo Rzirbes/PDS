@@ -20,13 +20,8 @@ import LocationSelect from '../../components/ui/location-select';
 import { AddClubModal } from '../../components/ui/add-club-modal';
 import { useCreateAthlete } from '../../hooks/use-athlete';
 import { maskCpf, maskPhone, maskZipCode, maskDate } from '../../utils/masks';
+import { AthleteForm } from '../../components/athletes/athlete-form';
 
-const maskMap: Record<string, (value: string) => string> = {
-    cpf: maskCpf,
-    phone: maskPhone,
-    zipCode: maskZipCode,
-    birthday: maskDate,
-};
 
 const schema = z.object({
     name: z.string().min(1),
@@ -143,52 +138,8 @@ export default function CreateAthleteScreen() {
         }
     }
 
-    const inputFields = [
-        { name: 'name', label: 'Nome', placeholder: 'Nome' },
-        { name: 'email', label: 'Email', placeholder: 'Email' },
-        { name: 'cpf', label: 'CPF', placeholder: 'CPF' },
-        { name: 'phone', label: 'Telefone', placeholder: 'Telefone' },
-        { name: 'birthday', label: 'Data de nascimento', placeholder: 'AAAA-MM-DD' },
-        { name: 'height', label: 'Altura (m)', placeholder: 'Ex: 1.75' },
-        { name: 'weight', label: 'Peso (kg)', placeholder: 'Ex: 70' },
-        { name: 'bestSkill', label: 'Melhor Qualidade', placeholder: 'Ex: Visão de jogo' },
-        { name: 'worstSkill', label: 'Maior Defeito', placeholder: 'Ex: Finalização' },
-        { name: 'goal', label: 'Objetivo', placeholder: 'Ex: Ganhar força' },
-        { name: 'description', label: 'Observações', placeholder: 'Observações' },
-        { name: 'zipCode', label: 'CEP', placeholder: '00000-000' },
-        { name: 'street', label: 'Rua', placeholder: 'Rua das Flores' },
-        { name: 'number', label: 'Número', placeholder: '123' },
-        { name: 'neighborhood', label: 'Bairro', placeholder: 'Centro' },
-        { name: 'complement', label: 'Complemento', placeholder: 'Apt 101' },
-    ];
 
-    function renderInputs(fields: string[]) {
-        return fields.map(field => {
-            const f = inputFields.find(i => i.name === field);
-            if (!f) return null;
-            return (
-                <View key={f.name} style={{ marginBottom: 12 }}>
-                    <Text style={{ color: colors.text, marginBottom: 4 }}>{f.label}</Text>
-                    <Controller
-                        control={form.control}
-                        name={f.name as keyof FormData}
-                        render={({ field: { onChange, value } }) => {
-                            const maskFn = maskMap[f.name];
-                            return (
-                                <ThemedInput
-                                    placeholder={f.placeholder}
-                                    onChangeText={(text) => {
-                                        onChange(maskFn ? maskFn(text) : text);
-                                    }}
-                                    value={typeof value === 'string' ? value : ''}
-                                />
-                            );
-                        }}
-                    />
-                </View>
-            );
-        });
-    }
+
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -199,131 +150,28 @@ export default function CreateAthleteScreen() {
             <ScrollView style={styles.container}>
                 <Text style={[styles.title, { color: colors.text }]}>Criar novo atleta</Text>
 
-                <FormSection title="Dados Pessoais">
-                    {renderInputs(['name', 'email', 'cpf', 'phone', 'birthday'])}
-                </FormSection>
-
-                <FormSection title="Status">
-                    <Controller
-                        control={form.control}
-                        name="isEnabled"
-                        render={({ field: { value, onChange } }) => (
-                            <View style={{ marginBottom: 12 }}>
-                                <Text style={{ color: colors.text, marginBottom: 4 }}>Ativo no sistema</Text>
-                                <Switch value={!!value} onValueChange={onChange} />
-                            </View>
-                        )}
-                    />
-                    <Controller
-                        control={form.control}
-                        name="isMonitorDaily"
-                        render={({ field: { value, onChange } }) => (
-                            <View style={{ marginBottom: 12 }}>
-                                <Text style={{ color: colors.text, marginBottom: 4 }}>Monitorado diariamente</Text>
-                                <Switch value={!!value} onValueChange={onChange} />
-                            </View>
-                        )}
-                    />
-                </FormSection>
-
-                <FormSection title="Características">
-                    {renderInputs(['height', 'weight', 'bestSkill', 'worstSkill', 'goal', 'description'])}
-                    <Controller
-                        control={form.control}
-                        name="dominantFoot"
-                        render={({ field: { value, onChange } }) => (
-                            <SingleSelect
-                                label="Pé dominante"
-                                selectedValue={value}
-                                onChange={onChange}
-                                options={Object.values(DominantFoot).map(foot => ({
-                                    value: foot,
-                                    label: dominantFootLabel[foot],
-                                }))}
-                            />
-                        )}
-                    />
-                    <Controller
-                        control={form.control}
-                        name="positions"
-                        render={({ field: { value, onChange } }) => (
-                            <MultiSelect
-                                label="Posições em campo"
-                                selectedValues={value ?? []}
-                                onChange={onChange}
-                                options={Object.values(FootballPosition).map(position => ({
-                                    label: footballPositionLabels[position],
-                                    value: position,
-                                }))}
-                            />
-                        )}
-                    />
-                </FormSection>
-
-                <FormSection title="Endereço">
-                    <LocationSelect
-                        location={location}
-                        setLocation={setLocation}
-                        control={form.control}
-                        watch={form.watch}
-                        setValue={form.setValue}
-                    />
-                    {renderInputs(['zipCode', 'street', 'number', 'neighborhood', 'complement'])}
-                </FormSection>
-
-                <FormSection title="Clubes do Atleta">
-                    <TouchableOpacity onPress={() => setIsClubModalVisible(true)}>
-                        <Text style={{ color: colors.primary, fontSize: 16 }}>+ Adicionar clube</Text>
-                    </TouchableOpacity>
-
-                    {newClubs.map((club, index) => (
-                        <View
-                            key={index}
-                            style={{
-                                marginVertical: 8,
-                                padding: 10,
-                                borderRadius: 8,
-                                borderWidth: 1,
-                                borderColor: colors.secondary,
-                            }}
-                        >
-                            <Text style={{ color: colors.text, fontWeight: 'bold' }}>{club.name}</Text>
-                            {club.startDate && <Text style={{ color: colors.text }}>Início: {new Date(club.startDate).toLocaleDateString()}</Text>}
-                            <TouchableOpacity onPress={() => setNewClubs(prev => prev.filter((_, i) => i !== index))}>
-                                <Trash color="#f00" />
-                            </TouchableOpacity>
+                <AthleteForm
+                    form={form}
+                    colors={colors}
+                    location={location}
+                    setLocation={setLocation}
+                    newClubs={newClubs}
+                    setNewClubs={setNewClubs}
+                    onSubmit={handleSubmit(onSubmit)}
+                    isClubModalVisible={isClubModalVisible}
+                    setIsClubModalVisible={setIsClubModalVisible}
+                    title="Cadastrar Atleta"
+                    renderClubList={
+                        <View style={{ marginTop: 12 }}>
+                            {newClubs.map((club, index) => (
+                                <Text key={index} style={{ color: colors.text }}>
+                                    • {club.name} — {new Date(club.startDate).toLocaleDateString('pt-BR')}
+                                </Text>
+                            ))}
                         </View>
-                    ))}
-                </FormSection>
-
-                <AddClubModal
-                    visible={isClubModalVisible}
-                    onClose={() => setIsClubModalVisible(false)}
-                    onSave={(newClub) => {
-                        const formatted = {
-                            clubId: newClub.id,
-                            name: newClub.name,
-                            startDate: new Date().toISOString(),
-                            countryId: newClub.countryId || undefined,
-                            stateId: newClub.stateId || undefined,
-                            cityId: newClub.cityId || undefined,
-                        };
-
-
-                        if (!formatted.countryId || !formatted.stateId || !formatted.cityId) {
-                            showMessage({ message: 'Erro', description: 'Preencha todos os campos de localização do clube.', type: 'warning' });
-                            return;
-                        }
-
-                        setNewClubs(prev => [...prev, formatted]);
-                        setIsClubModalVisible(false);
-                    }}
+                    }
                 />
 
-                <View style={styles.buttonGroup}>
-                    <Button title="Cancelar" onPress={() => navigation.goBack()} color={colors.danger} />
-                    <Button title="Salvar" onPress={handleSubmit(onSubmit)} color={colors.primary} />
-                </View>
             </ScrollView>
         </SafeAreaView>
     );

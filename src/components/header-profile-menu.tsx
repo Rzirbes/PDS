@@ -26,10 +26,10 @@ export default function HeaderProfileMenu() {
                 <Text style={[styles.title, { color: colors.text }]}>My Dashboard</Text>
             </View>
 
-            <Image
+            {/* <Image
                 source={{ uri: 'https://i.pravatar.cc/100' }}
                 style={styles.avatar}
-            />
+            /> */}
 
             {open && (
                 <View style={[styles.menu, { backgroundColor: colors.secondary }]}>
