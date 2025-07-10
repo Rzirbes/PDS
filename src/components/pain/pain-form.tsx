@@ -9,12 +9,12 @@ import {
     ScrollView,
     TouchableWithoutFeedback,
     Keyboard,
+    TouchableOpacity,
 } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-import { InputField } from '../ui/input-field';
 import { DatePickerInput } from '../ui/date-picker-input';
 import SingleSelect from '../ui/single-select';
 import { BodySide, InjuryContext } from '../../types/enums';
@@ -23,6 +23,8 @@ import { BodySideLabel, InjuryContextLabel } from '../../enums/injury';
 import TextArea from '../ui/text-area';
 import { TextField } from '../ui/text-field';
 import { SliderField } from '../ui/slider-field';
+import { X } from 'lucide-react-native';
+import { colors } from '../../theme/colors';
 
 export const painSchema = z.object({
     date: z.date(),
@@ -38,9 +40,10 @@ export type PainFormValues = z.infer<typeof painSchema>;
 interface Props {
     defaultValues?: Partial<PainFormValues>;
     onSubmit: (data: PainFormValues) => void;
+    onClose?: () => void
 }
 
-export function PainForm({ defaultValues, onSubmit }: Props) {
+export function PainForm({ defaultValues, onSubmit, onClose }: Props) {
     const {
         control,
         handleSubmit,
@@ -55,6 +58,9 @@ export function PainForm({ defaultValues, onSubmit }: Props) {
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
+            <TouchableOpacity onPress={onClose} style={{ alignSelf: 'flex-end', padding: 12 }}>
+                <X size={24} color={colors.light.primary} />
+            </TouchableOpacity>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={{ flex: 1 }}
@@ -62,7 +68,7 @@ export function PainForm({ defaultValues, onSubmit }: Props) {
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <ScrollView contentContainerStyle={{ padding: 16 }}>
                         <View style={{ gap: 12 }}>
-                            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Dor muscular</Text>
+                            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Dor muscular</Text>
 
                             <Controller
                                 control={control}

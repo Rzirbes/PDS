@@ -1,13 +1,7 @@
 import React from 'react';
 import {
     View,
-    ScrollView,
-    TextInput,
-    Text,
-    Switch,
-    TouchableOpacity,
     SafeAreaView,
-    Modal,
     Platform,
     TouchableWithoutFeedback,
     KeyboardAvoidingView,
@@ -15,26 +9,19 @@ import {
     Alert,
     StyleSheet,
 } from 'react-native';
-import { useForm, Controller, useFormContext } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import Slider from '@react-native-community/slider';
 import { getSchedulesKey, useCreateSchedule } from '../../hooks/use-schedule';
 import { useTheme } from '../../context/theme-context';
-import SingleSelect from '../../components/ui/single-select';
 import { useAthletes } from '../../hooks/use-athlete';
 import { useValidatedCoaches } from '../../hooks/use-validate-coaches';
 import { useTrainingTypes } from '../../hooks/use-training-types';
-import { TimePickerInput } from '../../components/ui/time-picker';
-import { DatePickerInput } from '../../components/ui/date-picker-input';
 import { useNavigation } from '@react-navigation/native';
 import { getWeekInterval } from '../../utils/date-utils';
 import { mutate } from 'swr';
 import { scheduleSchema } from '../../zod/schedule-schema';
 import { useAutoDuration } from '../../hooks/use-auto-duration';
 import { ScheduleForm } from '../../components/schedule/schedule-form-create';
-import { ChevronLeft, Feather } from 'lucide-react-native';
 import { BackButton } from '../../components/ui/back-button';
 
 
@@ -106,8 +93,7 @@ export default function ScheduleFormScreen() {
                 },
             };
 
-
-            const response = await submit(dto);
+            await submit(dto);
             const { startDate, endDate } = getWeekInterval(new Date(date));
             mutate(getSchedulesKey(startDate, endDate));
             Alert.alert('Agendamento criado com sucesso!');

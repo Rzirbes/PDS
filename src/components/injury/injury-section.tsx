@@ -40,6 +40,7 @@ export const InjurySection: React.FC<InjurySectionProps> = ({ injuries, onAddInj
                         onAddInjury(injury);
                         setShowModal(false);
                     }}
+                    onClose={() => setShowModal(false)}
                     defaultValues={defaultInjury}
                 />
             </FormModal>

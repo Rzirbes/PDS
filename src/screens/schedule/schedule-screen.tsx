@@ -1,10 +1,9 @@
 // src/screens/AgendaScreen.tsx
 
 import React, { useEffect, useState } from 'react'
-import { View, Text, FlatList, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
-import { mockCoaches, mockSchedules, mockTrainingPlannings } from '../../mock'
-import { generateWeeklyIntervalsForMonth, getWeekInterval } from '../../utils/date-utils'
-import { addDays, format, getMinutes, isWithinInterval, parse, parseISO } from 'date-fns'
+import { View, Text, TouchableOpacity } from 'react-native'
+import { getWeekInterval } from '../../utils/date-utils'
+import { addDays, format, isWithinInterval, parse, parseISO } from 'date-fns'
 import WeekDaySelector from '../../components/schedule/week-day-selector'
 import ScheduleComponent from '../../components/schedule/schedule-component'
 import CollaboratorPicker from '../../components/ui/collaborator-picker'
@@ -13,11 +12,9 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react-native'
 import { RootStackParamList } from '../../navigation/types'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { getSchedulesKey, useSchedules } from '../../hooks/use-schedule'
+import { useSchedules } from '../../hooks/use-schedule'
 import { DatePickerInput } from '../../components/ui/date-picker-input'
 import { useValidatedCoaches } from '../../hooks/use-validate-coaches'
-import { useCompletedTrainings } from '../../hooks/use-completed-training'
-import { mutate } from 'swr'
 import { BackButton } from '../../components/ui/back-button'
 
 

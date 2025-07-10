@@ -10,6 +10,8 @@ import HeaderWithBack from '../../components/athletes/header-with-back'
 import MonitoringContainer from '../../components/charts/monitoring-container'
 import { useAthleteById, useAthletes } from '../../hooks/use-athlete'
 import AthleteInfoScreen from '../../components/athletes/athlete-infor'
+import WeeklyTrainingsScreen from './completed-trainings-screen'
+import WeeklyPlanningTrainingsScreen from './planned-training'
 
 type AthleteDetailsRouteProp = RouteProp<RootStackParamList, 'AthleteDetails'>
 type RouteType = {
@@ -47,20 +49,26 @@ export default function AthleteDetailsScreen() {
         />
     )
 
-    const renderScene = SceneMap({
-        monitoramento: () => <MonitoringContainer athleteId={athleteId} />,
-        planejados: () => (
-            <View style={{ padding: 16 }}>
-                <Text style={{ color: colors.text }}>🗓️ Treinos planejados</Text>
-            </View>
-        ),
-        concluidos: () => (
-            <View style={{ padding: 16 }}>
-                <Text style={{ color: colors.text }}>✅ Treinos concluídos</Text>
-            </View>
-        ),
-        info: () => <AthleteInfoScreen athlete={athlete as any} />,
-    })
+    const renderScene = ({ route }: { route: RouteType }) => {
+        if (!athlete) return null;
+
+        switch (route.key) {
+            case 'monitoramento':
+                return <MonitoringContainer athleteId={athlete.id} />;
+
+            case 'planejados':
+                return <WeeklyPlanningTrainingsScreen athleteId={athlete.id} />;;
+
+            case 'concluidos':
+                return <WeeklyTrainingsScreen athleteId={athlete.id} />;
+
+            case 'info':
+                return <AthleteInfoScreen athlete={athlete} />;
+
+            default:
+                return null;
+        }
+    };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>

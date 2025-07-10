@@ -9,6 +9,7 @@ import {
     TouchableWithoutFeedback,
     Keyboard,
     Text,
+    TouchableOpacity,
 } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,6 +24,8 @@ import { BodySide, InjuryContext, InjuryDegree } from '../../types/enums';
 import ControlledDatePickerInput from '../ui/controlled-date-picker-input';
 import ExpoCheckbox from 'expo-checkbox/build/ExpoCheckbox';
 import { useTheme } from '../../context/theme-context';
+import { BackButton } from '../ui/back-button';
+import { X } from 'lucide-react-native';
 
 export const injurySchema = z.object({
     date: z.date(),
@@ -63,9 +66,10 @@ export type InjuryFormValues = z.infer<typeof injurySchema>;
 interface Props {
     defaultValues?: Partial<InjuryFormValues>;
     onSubmit: (data: InjuryFormValues) => void;
+    onClose?: () => void
 }
 
-export function InjuryForm({ defaultValues, onSubmit }: Props) {
+export function InjuryForm({ defaultValues, onSubmit, onClose }: Props) {
     const { colors } = useTheme()
     const {
         control,
@@ -82,6 +86,9 @@ export function InjuryForm({ defaultValues, onSubmit }: Props) {
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+                <TouchableOpacity onPress={onClose} style={{ alignSelf: 'flex-end', padding: 12 }}>
+                    <X size={24} color={colors.primary} />
+                </TouchableOpacity>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <ScrollView contentContainerStyle={{ padding: 16 }}>
                         <View style={{ gap: 12 }}>

@@ -38,6 +38,7 @@ export const PainSection: React.FC<PainSectionProps> = ({ pains, onAddPain, onDe
             onAddPain(newPain);
             setShowPainModal(false);
           }}
+          onClose={() => setShowPainModal(false)}
           defaultValues={{
             date: new Date(),
             bodyRegion: '',
@@ -45,6 +46,7 @@ export const PainSection: React.FC<PainSectionProps> = ({ pains, onAddPain, onDe
             occurredDuring: InjuryContext.TRAINING,
             intensity: 0,
             description: '',
+
           }}
         />
       </FormModal>

@@ -177,7 +177,7 @@ function renderObjectAsInfoItems(
     obj: Record<string, any>,
     fields: { key: string; label: string; isDate?: boolean }[]
 ) {
-    return fields.map(({ key, label, isDate }) => {
+    return fields.map(({ key, label, isDate }, index) => {
         let value = obj[key];
 
         if (isDate && value) {
@@ -194,7 +194,9 @@ function renderObjectAsInfoItems(
 
         if (value === undefined || value === null) value = '-';
 
-        return <InfoItem key={key} label={label} value={String(value)} />;
+        const uniqueKey = obj.id ? `${obj.id}-${key}` : `fallback-${index}-${key}`;
+
+        return <InfoItem key={uniqueKey} label={label} value={String(value)} />;
     });
 }
 
