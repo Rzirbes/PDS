@@ -1,8 +1,8 @@
 // src/screens/CreateAthleteScreen.tsx
 
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Button, Switch, TouchableOpacity } from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigation } from '@react-navigation/native';
@@ -10,16 +10,7 @@ import { showMessage } from 'react-native-flash-message';
 import { useTheme } from '../../context/theme-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Trash } from 'lucide-react-native';
-import { DominantFoot, dominantFootLabel, FootballPosition, footballPositionLabels } from '../../enums/athelte';
-import { useCitiesByState, useStatesByCountry } from '../../hooks/use-countries';
-import ThemedInput from '../../components/ui/themedInput';
-import { FormSection } from '../../components/ui/form-section';
-import SingleSelect from '../../components/ui/single-select';
-import MultiSelect from '../../components/ui/multi-select';
-import LocationSelect from '../../components/ui/location-select';
-import { AddClubModal } from '../../components/ui/add-club-modal';
 import { useCreateAthlete } from '../../hooks/use-athlete';
-import { maskCpf, maskPhone, maskZipCode, maskDate } from '../../utils/masks';
 import { AthleteForm } from '../../components/athletes/athlete-form';
 
 

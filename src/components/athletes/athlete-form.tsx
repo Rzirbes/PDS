@@ -53,13 +53,11 @@ export function AthleteForm({
     colors,
     location,
     setLocation,
-    newClubs,
     setNewClubs,
     onSubmit,
     isClubModalVisible,
     setIsClubModalVisible,
     title,
-    isEdit = false,
     renderClubList,
     renderExtraSections
 }: AthleteFormProps) {

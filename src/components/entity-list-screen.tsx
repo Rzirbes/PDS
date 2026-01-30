@@ -43,7 +43,11 @@ export default function EntityListScreen<T>({
                 {title && (
                     <View style={styles.header}>
                         {showBackButton && (
-                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                            <TouchableOpacity
+                                onPress={() => navigation.goBack()}
+                                style={styles.backButton}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+>
                                 <Feather name="chevron-left" size={24} color={colors.primary} />
                             </TouchableOpacity>
                         )}
@@ -58,7 +62,7 @@ export default function EntityListScreen<T>({
                 ) : (
                     <GenericList
                         data={filteredData}
-                        keyExtractor={(item) => (item as any).id}
+                        keyExtractor={(item) => String((item as any).id)}
                         renderItem={renderItem}
                     />
                 )}

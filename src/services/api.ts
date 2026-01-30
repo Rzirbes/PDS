@@ -18,12 +18,20 @@ export async function apiFetch<TResponse = any>(
     const endpoint = path.replace(/^\/+/, '')
     const cleanUrl = `${base}/${endpoint}`
 
+    
     const isFormData = options.body instanceof FormData;
 
     const baseHeaders: Record<string, string> = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     };
+
+    const body =
+        !isFormData && options.body && typeof options.body === 'object'
+            ? JSON.stringify(options.body)
+            : options.body
+
+    const nextOptions: RequestInit = { ...options, body }
 
     const finalHeaders = {
         ...baseHeaders,
@@ -33,20 +41,17 @@ export async function apiFetch<TResponse = any>(
     };
 
     const response = await fetch(cleanUrl, {
-        ...options,
+        ...nextOptions,
+        body,
         headers: finalHeaders,
     });
 
-    console.log('API_URL:', API_URL);
-    console.log('Chamada final:', cleanUrl);
-    console.log('Headers:', finalHeaders);
 
     if (response.status === 401 && retry) {
     const newToken = await refreshSession()
-    if (newToken) return apiFetch<TResponse>(path, options, false, newToken)
+    if (newToken) return apiFetch<TResponse>(path, nextOptions, false, newToken)
     return await logoutAndThrow()
-  }
-
+    }
     const rawText = await response.clone().text();
     console.log('Resposta bruta da API:', rawText);
     console.log('Response status:', response.status);

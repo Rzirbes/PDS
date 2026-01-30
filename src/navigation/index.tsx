@@ -10,7 +10,7 @@ import { RootStackParamList } from './types';
 import HomeScreen from '../screens/home-screen';
 import LoginScreen from '../screens/login';
 import AthletesScreen from '../screens/athletes/athletes-screen';
-import TrainningTypesScreen from '../screens/trainning-types-screen';
+import TrainningTypesScreen from '../screens/trainning-types/trainning-types-screen';
 import CollaboratorsScreen from '../screens/collaborators/collaborator-screen';
 import ScheduleScreen from '../screens/schedule/schedule-screen';
 import LoadingScreen from '../screens/loadin-screen';
