@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { deleteSession, getAccessToken, getKeepConnected } from '../services/session-service';
+import { deleteSession, getAccessToken, refreshSession } from '../services/session-service';
 
 interface AuthContextType {
     token: string | null;
@@ -16,15 +16,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         async function loadToken() {
-            const keepConnected = await getKeepConnected();
-            if (keepConnected) {
-            const savedToken = await getAccessToken();
-            setToken(savedToken);
+            const savedToken = await getAccessToken()
+
+            if (savedToken) {
+            setToken(savedToken)
+            setIsLoading(false)
+            return
             }
-            setIsLoading(false);
+
+            const newToken = await refreshSession()
+            setToken(newToken)
+            setIsLoading(false)
         }
-        loadToken();
-        }, []);
+
+        loadToken()
+    }, [])
 
         async function logout() {
         await deleteSession();
