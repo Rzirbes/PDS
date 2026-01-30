@@ -1,21 +1,23 @@
 import { API_URL } from '@env';
-import { getAccessToken, refreshSession } from './session-service';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { deleteSession, getAccessToken, refreshSession } from './session-service';
 
 async function logoutAndThrow(): Promise<never> {
-    await AsyncStorage.removeItem('accessToken');
-    await AsyncStorage.removeItem('refreshToken');
-    throw new Error('Sessão expirada. Faça login novamente.');
+  await deleteSession();
+  throw new Error('Sessão expirada. Faça login novamente.');
 }
 
 export async function apiFetch<TResponse = any>(
     path: string,
     options: RequestInit = {},
-    retry = true
+    retry = true,
+    forcedToken?: string | null
 ): Promise<TResponse> {
-    let token = await getAccessToken();
+    const token = forcedToken ?? (await getAccessToken())
 
-    const cleanUrl = `${API_URL}${path}`.replace(/([^:]\/)\/+/g, '$1');
+    const base = (API_URL ?? '').replace(/\/+$/, '')
+    const endpoint = path.replace(/^\/+/, '')
+    const cleanUrl = `${base}/${endpoint}`
+
     const isFormData = options.body instanceof FormData;
 
     const baseHeaders: Record<string, string> = {
@@ -40,16 +42,10 @@ export async function apiFetch<TResponse = any>(
     console.log('Headers:', finalHeaders);
 
     if (response.status === 401 && retry) {
-        console.warn('Token expirado. Tentando refresh...');
-        const newToken = await refreshSession();
-
-        if (newToken) {
-            return apiFetch<TResponse>(path, options, false);
-        } else {
-            console.warn('Refresh falhou. Fazendo logout.');
-            return await logoutAndThrow();
-        }
-    }
+    const newToken = await refreshSession()
+    if (newToken) return apiFetch<TResponse>(path, options, false, newToken)
+    return await logoutAndThrow()
+  }
 
     const rawText = await response.clone().text();
     console.log('Resposta bruta da API:', rawText);
@@ -86,7 +82,9 @@ export async function publicFetch<TResponse = any>(
     path: string,
     options: RequestInit = {}
 ): Promise<TResponse> {
-    const cleanUrl = `${API_URL}${path}`.replace(/([^:]\/)\/+/g, '$1');
+    const base = (API_URL ?? '').replace(/\/+$/, '')
+    const endpoint = path.replace(/^\/+/, '')
+    const cleanUrl = `${base}/${endpoint}`
 
     const response = await fetch(cleanUrl, {
         ...options,

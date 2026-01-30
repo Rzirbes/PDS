@@ -5,7 +5,7 @@ import SearchBar from './search-bar';
 import GenericList from './list';
 import FloatingActionButton from './floating-button';
 import { useTheme } from '../context/theme-context';
-import { Feather } from '@expo/vector-icons'; // ou 'react-native-vector-icons/Feather'
+import { Feather } from '@expo/vector-icons'; 
 import { useNavigation } from '@react-navigation/native';
 
 type Props<T> = {

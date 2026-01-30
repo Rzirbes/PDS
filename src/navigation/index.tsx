@@ -12,41 +12,37 @@ import LoginScreen from '../screens/login';
 import AthletesScreen from '../screens/athletes/athletes-screen';
 import TrainningTypesScreen from '../screens/trainning-types-screen';
 import CollaboratorsScreen from '../screens/collaborators/collaborator-screen';
-import AthleteDetailsScreen from '../screens/athletes/athlete-details-screen';
 import ScheduleScreen from '../screens/schedule/schedule-screen';
 import LoadingScreen from '../screens/loadin-screen';
-import CollaboratorInfoScreen from '../screens/collaborators/collaborator-info-screen.tsx';
-import EditAthleteScreen from '../screens/athletes/edit-athletes-screem';
 import CollaboratorInfoWrapper from '../screens/collaborators/collaborator-info-wrapper';
 import EditAthleteWrapper from '../screens/athletes/edit-athlete-wrapper';
 import AthleteDetailsWrapper from '../screens/athletes/athlete-details-wrapper';
 import CreateAthleteScreen from '../screens/athletes/create-athlete-screen';
 import ScheduleFormScreen from '../screens/schedule/schedule-form-screen';
 import { FinishTrainingScreen } from '../screens/schedule/finish-training-screen';
+import { getAccessToken } from '../services/session-service';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// Define quais rotas exigem parâmetros obrigatórios
-const routeNeedsParams = (routeName: keyof RootStackParamList): boolean => {
-  const routesWithRequiredParams: Partial<Record<keyof RootStackParamList, (params: any) => boolean>> = {
-    AthleteDetails: (params) => !!params?.athleteId,
-    EditAthlete: (params) => !!params?.athleteId,
-    CollaboratorDetails: (params) => !!params?.coachId,
-  };
+const routeParamsAreValid = (routeName: keyof RootStackParamList, params: any) => {
+  const validators: Partial<Record<keyof RootStackParamList, (p: any) => boolean>> = {
+    AthleteDetails: (p) => !!p?.athleteId,
+    EditAthlete: (p) => !!p?.athleteId,
+    CollaboratorDetails: (p) => !!p?.coachId,
+  }
 
-  const validator = routesWithRequiredParams[routeName];
-  return validator ? !validator : false; // Se houver validação e ela falhar, retorna true
-};
+  const validate = validators[routeName]
+  return validate ? validate(params) : true
+}
 
 export default function Routes() {
   const { token, isLoading } = useAuth();
   const navRef = useNavigationContainerRef();
 
-  // Salvar a última rota com seus parâmetros
   useEffect(() => {
     const unsubscribe = navRef.addListener('state', () => {
       const route = navRef.getCurrentRoute();
-      if (route) {
+      if (route && token) {
         AsyncStorage.setItem('@last_route', JSON.stringify({
           name: route.name,
           params: route.params ?? undefined,
@@ -57,41 +53,38 @@ export default function Routes() {
     return unsubscribe;
   }, [navRef]);
 
-  // Restaurar a última rota
   useEffect(() => {
     const restore = async () => {
-      const token = await AsyncStorage.getItem('@token');
-      const lastRouteRaw = await AsyncStorage.getItem('@last_route');
+      const storedToken = await getAccessToken()
+      const lastRouteRaw = await AsyncStorage.getItem('@last_route')
 
-      if (token && lastRouteRaw && navigationRef.isReady()) {
-        try {
-          const lastRoute = JSON.parse(lastRouteRaw) as {
-            name: keyof RootStackParamList;
-            params?: any;
-          };
+      if (!storedToken || !lastRouteRaw) return
 
-          if (
-            typeof lastRoute.name === 'string' &&
-            !routeNeedsParams(lastRoute.name) // se não precisa de params OU
-            || (lastRoute.params && !routeNeedsParams(lastRoute.name)) // ou tem os params necessários
-          ) {
-            navigationRef.navigate({
-              name: lastRoute.name,
-              params: lastRoute.params,
-            });
-          } else {
-            navigationRef.navigate('Home'); // fallback seguro
-          }
-        } catch (error) {
-          console.warn('Falha ao restaurar rota:', error);
-          navigationRef.navigate('Home'); // fallback em caso de erro no JSON
+      try {
+        const lastRoute = JSON.parse(lastRouteRaw) as {
+          name: keyof RootStackParamList
+          params?: any
         }
-      }
-    };
 
-    const timeout = setTimeout(restore, 500);
-    return () => clearTimeout(timeout);
-  }, []);
+        const canNavigate = routeParamsAreValid(lastRoute.name, lastRoute.params)
+
+        if (!navigationRef.isReady()) return
+
+        if (canNavigate) {
+          navigationRef.navigate(lastRoute.name, lastRoute.params)
+        } else {
+          navigationRef.navigate('Home')
+        }
+      } catch (error) {
+        console.warn('Falha ao restaurar rota:', error)
+        if (navigationRef.isReady()) navigationRef.navigate('Home')
+      }
+    }
+
+    const timeout = setTimeout(restore, 500)
+    return () => clearTimeout(timeout)
+  }, [])
+
 
   if (isLoading) return <LoadingScreen />;
 

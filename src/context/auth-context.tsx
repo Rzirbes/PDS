@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getKeepConnected } from '../services/session-service';
+import { deleteSession, getAccessToken, getKeepConnected } from '../services/session-service';
 
 interface AuthContextType {
     token: string | null;
@@ -18,27 +17,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         async function loadToken() {
             const keepConnected = await getKeepConnected();
-
             if (keepConnected) {
-                const savedToken = await AsyncStorage.getItem('accessToken');
-                setToken(savedToken);
+            const savedToken = await getAccessToken();
+            setToken(savedToken);
             }
-
             setIsLoading(false);
         }
-
         loadToken();
-    }, []);
+        }, []);
 
-    async function logout() {
-        try {
-            await AsyncStorage.removeItem('accessToken');
-            await AsyncStorage.removeItem('refreshToken');
-            setToken(null);
-        } catch (error) {
-            console.error('Erro ao fazer logout:', error);
+        async function logout() {
+        await deleteSession();
+        setToken(null);
         }
-    }
 
     return (
         <AuthContext.Provider value={{ token, isLoading, setToken, logout }}>
