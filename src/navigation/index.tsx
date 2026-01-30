@@ -21,6 +21,7 @@ import CreateAthleteScreen from '../screens/athletes/create-athlete-screen';
 import ScheduleFormScreen from '../screens/schedule/schedule-form-screen';
 import { FinishTrainingScreen } from '../screens/schedule/finish-training-screen';
 import { getAccessToken } from '../services/session-service';
+import CreateCoachScreen from '../screens/collaborators/create-collaborator-screen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -98,6 +99,7 @@ export default function Routes() {
             <Stack.Screen name="AthleteDetails" component={AthleteDetailsWrapper} />
             <Stack.Screen name="EditAthlete" component={EditAthleteWrapper} />
             <Stack.Screen name="Collaborators" component={CollaboratorsScreen} />
+            <Stack.Screen name="CreateCollaborator" component={CreateCoachScreen} />
             <Stack.Screen name="Trainings" component={TrainningTypesScreen} />
             <Stack.Screen name="Schedule" component={ScheduleScreen} />
             <Stack.Screen name="CollaboratorDetails" component={CollaboratorInfoWrapper} />

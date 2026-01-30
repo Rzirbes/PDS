@@ -9,37 +9,34 @@ import { Coach } from '../../services/coach-service'
 import { useValidatedCoaches } from '../../hooks/use-validate-coaches'
 
 export default function CollaboratorsScreen() {
-    const { coaches, isLoading } = useValidatedCoaches()
-    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
+  const { coaches, isLoading } = useValidatedCoaches()
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
 
-    const listData = coaches.map((coach: any) => ({
-        id: String(coach.id),
-        name: coach.name,
-        email: coach.email,
-        status: (coach.isEnabled ? 'Ativo' : 'Inativo') as EntityStatus,
-    }))
+  const listData: Entity[] = (coaches ?? []).map((coach: Coach) => ({
+    id: String(coach.uuid ?? coach.id), 
+    name: coach.name,
+    email: coach.email,
+    status: (coach.isEnabled ? 'Ativo' : 'Inativo') as EntityStatus
+  }))
 
-    return (
-        <EntityListScreen<Entity>
-
-            title="Colaboradores"
-            placeholder="Buscar por colaborador..."
-            showBackButton
-            data={listData}
-            isLoading={isLoading}
-            onFabPress={() => console.log('Cadastrar colaborador')}
-            renderItem={(item) => (
-                <EntityItemCard
-                    item={item}
-                    onPress={() =>
-                        navigation.navigate('CollaboratorDetails', { coachId: item.id })
-                    }
-                />
-            )}
-            searchBy={(item, query) =>
-                item.name.toLowerCase().includes(query.toLowerCase()) ||
-                item.email.toLowerCase().includes(query.toLowerCase())
-            }
+  return (
+    <EntityListScreen<Entity>
+      title="Colaboradores"
+      placeholder="Buscar por colaborador..."
+      showBackButton
+      data={listData}
+      isLoading={isLoading}
+      onFabPress={() => navigation.navigate('CreateCollaborator')} 
+      renderItem={(item) => (
+        <EntityItemCard
+          item={item}
+          onPress={() => navigation.navigate('CollaboratorDetails', { coachId: item.id })}
         />
-    )
+      )}
+      searchBy={(item, query) => {
+        const q = query.toLowerCase()
+        return item.name.toLowerCase().includes(q) || item.email.toLowerCase().includes(q)
+      }}
+    />
+  )
 }

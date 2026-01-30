@@ -5,6 +5,7 @@ export type RootStackParamList = {
   AthleteDetails: { athleteId: string };
   EditAthlete: { athleteId: string };
   Collaborators: undefined;
+  CreateCollaborator: undefined;
   CollaboratorDetails: { coachId: string };
   Trainings: undefined;
   Schedule: undefined;
