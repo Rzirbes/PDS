@@ -16,11 +16,13 @@ export interface GetCoachesResponse {
 
 export interface CoachDetails {
   id: number;
+  uuid?: string
   name: string;
   email: string;
   role: string;
   phone?: string;
   schedulerColor?: string;
+  isEnabled: boolean
   address?: {
     zipCode?: string;
     street?: string;
