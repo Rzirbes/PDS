@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     View,
-    SafeAreaView,
     Platform,
     TouchableWithoutFeedback,
     KeyboardAvoidingView,
@@ -23,6 +22,7 @@ import { scheduleSchema } from '../../zod/schedule-schema';
 import { useAutoDuration } from '../../hooks/use-auto-duration';
 import { ScheduleForm } from '../../components/schedule/schedule-form-create';
 import { BackButton } from '../../components/ui/back-button';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 
 
@@ -103,9 +103,11 @@ export default function ScheduleFormScreen() {
         }
     };
 
+    const insets = useSafeAreaInsets()
+
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+             <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={{ flex: 1 }}

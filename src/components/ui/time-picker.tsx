@@ -1,138 +1,140 @@
-// components/TimePickerInput.tsx
-import React from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    Modal,
-    Platform,
-    TouchableOpacity,
-    Pressable,
-} from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useTheme } from '../../context/theme-context';
+// components/ui/time-picker.tsx (ou onde estiver)
+import React from 'react'
+import { View, Text, TextInput, Modal, Platform, TouchableOpacity, Pressable } from 'react-native'
+import DateTimePicker from '@react-native-community/datetimepicker'
+import { useTheme } from '../../context/theme-context'
 
 interface TimePickerInputProps {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    error?: string;
+  label: string
+  value: string
+  onChange: (value: string) => void
+  error?: string
 }
 
+Platform.select({
+  android: true,
+  default: false,
+})
+
 export function TimePickerInput({ label, value, onChange, error }: TimePickerInputProps) {
-    const [showPicker, setShowPicker] = React.useState(false);
-    const parseTimeString = (timeStr: string) => {
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        const date = new Date();
-        date.setHours(hours || 0);
-        date.setMinutes(minutes || 0);
-        return date;
-    };
-    const [tempDate, setTempDate] = React.useState(parseTimeString(value || '00:00'));
-    const { colors } = useTheme();
+  const { colors } = useTheme()
+  const [showPicker, setShowPicker] = React.useState(false)
 
+  const parseTimeString = React.useCallback((timeStr: string) => {
+    const [hours, minutes] = (timeStr || '00:00').split(':').map(Number)
+    const date = new Date()
+    date.setHours(Number.isFinite(hours) ? hours : 0)
+    date.setMinutes(Number.isFinite(minutes) ? minutes : 0)
+    date.setSeconds(0)
+    date.setMilliseconds(0)
+    return date
+  }, [])
 
-    const handleConfirmIOS = () => {
-        const hours = tempDate.getHours().toString().padStart(2, '0');
-        const minutes = tempDate.getMinutes().toString().padStart(2, '0');
-        onChange(`${hours}:${minutes}`);
-        setShowPicker(false);
-    };
+  const [tempDate, setTempDate] = React.useState(parseTimeString(value || '00:00'))
 
-    const handleChangeAndroid = (_: any, selectedDate?: Date) => {
-        setShowPicker(false);
-        if (selectedDate) {
-            const hours = selectedDate.getHours().toString().padStart(2, '0');
-            const minutes = selectedDate.getMinutes().toString().padStart(2, '0');
-            onChange(`${hours}:${minutes}`);
-        }
-    };
+  const open = () => {
+    setTempDate(parseTimeString(value || '00:00'))
+    setShowPicker(true)
+  }
 
-    return (
-        <View style={{ marginBottom: 16 }}>
-            <Text style={{ color: colors.text, marginBottom: 4 }}>{label}</Text>
+  const handleConfirmIOS = () => {
+    const hh = String(tempDate.getHours()).padStart(2, '0')
+    const mm = String(tempDate.getMinutes()).padStart(2, '0')
+    onChange(`${hh}:${mm}`)
+    setShowPicker(false)
+  }
 
-            <TextInput
-                value={value || '00:00'}
-                onPressIn={() => {
-                    setTempDate(parseTimeString(value || '00:00'));
-                    setShowPicker(true);
-                }}
-                editable={false}
-                placeholder={label}
-                placeholderTextColor={colors.muted}
+  const handleChangeAndroid = (_: any, selectedDate?: Date) => {
+    if (!selectedDate) {
+      setShowPicker(false)
+      return
+    }
+    const hh = String(selectedDate.getHours()).padStart(2, '0')
+    const mm = String(selectedDate.getMinutes()).padStart(2, '0')
+    onChange(`${hh}:${mm}`)
+    setShowPicker(false)
+  }
+
+  return (
+    <View style={{ marginBottom: 16 }}>
+      <Text style={{ color: colors.text, marginBottom: 4 }}>{label}</Text>
+
+      <Pressable onPress={open}>
+        <TextInput
+          value={value || '00:00'}
+          editable={false}
+          pointerEvents="none"
+          placeholder={label}
+          placeholderTextColor={colors.muted}
+          style={{
+            height: 44,
+            borderWidth: 1,
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            color: colors.text,
+            borderColor: colors.border,
+          }}
+        />
+      </Pressable>
+
+      {showPicker &&
+        (Platform.OS === 'android' ? (
+          <DateTimePicker
+            mode="time"
+            display="default"
+            value={parseTimeString(value || '00:00')}
+            is24Hour
+            onChange={handleChangeAndroid}
+          />
+        ) : (
+          <Modal transparent animationType="fade" onRequestClose={() => setShowPicker(false)}>
+            <Pressable
+              onPress={() => setShowPicker(false)}
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                backgroundColor: 'rgba(0,0,0,0.5)',
+              }}
+            >
+              <Pressable
+                onPress={() => {}}
                 style={{
-                    height: 44,
-                    borderWidth: 1,
-                    borderRadius: 8,
-                    paddingHorizontal: 12,
-                    color: colors.text,
-                    borderColor: colors.border,
-                    justifyContent: 'center',
+                  backgroundColor: colors.background,
+                  marginHorizontal: 32,
+                  borderRadius: 8,
+                  padding: 16,
                 }}
-            />
-
-            {showPicker && (
-                Platform.OS === 'android' ? (
+              >
+                {showPicker && Platform.select({ android: true }) &&  (
                     <DateTimePicker
                         mode="time"
                         display="default"
                         value={parseTimeString(value || '00:00')}
                         is24Hour
                         onChange={handleChangeAndroid}
+                        themeVariant="dark"
+                        accentColor={colors.primary}
                     />
-                ) : (
-                    <Modal transparent animationType="fade">
-                        <Pressable
-                            onPress={() => setShowPicker(false)}
-                            style={{
-                                flex: 1,
-                                justifyContent: 'center',
-                                backgroundColor: 'rgba(0,0,0,0.5)',
-                            }}
-                        >
-                            <Pressable
-                                onPress={() => { }}
-                                style={{
-                                    backgroundColor: colors.background,
-                                    marginHorizontal: 32,
-                                    borderRadius: 8,
-                                    padding: 16,
-                                }}
-                            >
-                                <DateTimePicker
-                                    mode="time"
-                                    display="spinner"
-                                    value={tempDate}
-                                    is24Hour
-                                    onChange={(_, selectedDate) => {
-                                        if (selectedDate) {
-                                            setTempDate(selectedDate);
-                                        }
-                                    }}
-                                />
-                                <TouchableOpacity
-                                    onPress={handleConfirmIOS}
-                                    style={{
-                                        marginTop: 16,
-                                        backgroundColor: colors.primary,
-                                        padding: 10,
-                                        borderRadius: 8,
-                                        alignItems: 'center',
-                                    }}
-                                >
-                                    <Text style={{ color: colors.background, fontWeight: 'bold' }}>
-                                        Confirmar
-                                    </Text>
-                                </TouchableOpacity>
-                            </Pressable>
-                        </Pressable>
-                    </Modal>
-                )
-            )}
+                    )}
 
-            {error && <Text style={{ color: colors.danger }}>{error}</Text>}
-        </View>
-    );
+                <TouchableOpacity
+                  onPress={handleConfirmIOS}
+                  style={{
+                    marginTop: 16,
+                    backgroundColor: colors.primary,
+                    padding: 10,
+                    borderRadius: 8,
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ color: colors.background, fontWeight: 'bold' }}>Confirmar</Text>
+                </TouchableOpacity>
+              </Pressable>
+            </Pressable>
+          </Modal>
+        ))}
+
+      {!!error && <Text style={{ color: colors.danger }}>{error}</Text>}
+    </View>
+  )
 }
-

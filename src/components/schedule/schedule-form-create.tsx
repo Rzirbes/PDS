@@ -37,7 +37,7 @@ export function ScheduleForm({
   const { colors } = useTheme();
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16 }}>
+    <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
       <Text style={{ color: colors.text, fontSize: 18, marginBottom: 12 }}>Agendar para</Text>
 
       <Controller
