@@ -25,29 +25,29 @@ interface Props {
 export default function LocationSelect({ control, watch, setValue, setLocation }: Props) {
     const { colors } = useTheme();
 
-    const selectedCountry = watch('country');
-    const selectedState = watch('state');
+    const selectedCountryId = watch('countryId');
+    const selectedStateId = watch('stateId');
 
     const [countryModalVisible, setCountryModalVisible] = useState(false);
     const [stateModalVisible, setStateModalVisible] = useState(false);
     const [cityModalVisible, setCityModalVisible] = useState(false);
 
     const { data: countries = [] } = useCountries();
-    const { data: states = [] } = useStatesByCountry(selectedCountry);
-    const { data: cities = [] } = useCitiesByState(selectedState);
+    const { data: states = [] } = useStatesByCountry(selectedCountryId);
+    const { data: cities = [] } = useCitiesByState(selectedStateId);
 
     useEffect(() => {
-        if (!selectedCountry) {
-            setValue('state', '');
-            setValue('city', '');
+        if (!selectedCountryId) {
+            setValue('stateId', '');
+            setValue('cityId', '');
         }
-    }, [selectedCountry]);
+    }, [selectedCountryId, setValue]);
 
     useEffect(() => {
-        if (!selectedState) {
-            setValue('city', '');
+        if (!selectedStateId) {
+            setValue('cityId', '');
         }
-    }, [selectedState]);
+    }, [selectedStateId, setValue]);
 
     const themedTextStyle = useMemo(() => ({ color: colors.text, marginBottom: 4 }), [colors.text]);
     const fieldStyle = { marginBottom: 16 };
@@ -60,7 +60,7 @@ export default function LocationSelect({ control, watch, setValue, setLocation }
                 <Text style={themedTextStyle}>País</Text>
                 <Controller
                     control={control}
-                    name="country"
+                    name="countryId"
                     render={({ field: { value, onChange } }) => {
                         const selectedLabel = countries.find(c => c.id === value)?.name ?? 'Selecione o país...';
                         return (
@@ -85,9 +85,10 @@ export default function LocationSelect({ control, watch, setValue, setLocation }
                                     selectedValue={value}
                                     onSelect={(val) => {
                                         onChange(val);
-                                        setValue('state', '');
-                                        setValue('city', '');
-                                        setLocation(prev => ({ ...prev, countryId: val }));
+                                        setValue('stateId', '');
+                                        setValue('cityId', '');
+                                        setLocation(prev => ({ ...prev, countryId: val, stateId: null, cityId: null }));
+
                                     }}
                                     onClose={() => setCountryModalVisible(false)}
                                 />
@@ -102,7 +103,7 @@ export default function LocationSelect({ control, watch, setValue, setLocation }
                 <Text style={themedTextStyle}>Estado</Text>
                 <Controller
                     control={control}
-                    name="state"
+                    name="stateId"
                     render={({ field: { value, onChange } }) => {
                         const selectedLabel = states.find(s => s.id === value)?.name ?? 'Selecione o estado...';
                         return (
@@ -127,8 +128,9 @@ export default function LocationSelect({ control, watch, setValue, setLocation }
                                     selectedValue={value}
                                     onSelect={(val) => {
                                         onChange(val);
-                                        setValue('city', '');
-                                        setLocation(prev => ({ ...prev, stateId: val }));
+                                        setValue('cityId', '');
+                                        setLocation(prev => ({ ...prev, stateId: val, cityId: null }));
+
                                     }}
                                     onClose={() => setStateModalVisible(false)}
                                 />
@@ -143,7 +145,7 @@ export default function LocationSelect({ control, watch, setValue, setLocation }
                 <Text style={themedTextStyle}>Cidade</Text>
                 <Controller
                     control={control}
-                    name="city"
+                    name="cityId"
                     render={({ field: { value, onChange } }) => {
                         const selectedLabel = cities.find(c => c.id === value)?.name ?? 'Selecione a cidade...';
                         return (

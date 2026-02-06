@@ -15,23 +15,55 @@ import { CoachForm } from '../../components/collaborators/collaborator-form'
 import { useCreateCoach } from '../../hooks/use-colaborators'
 import { CollaboratorSchema, CollaboratorFormData } from '../../zod/collaborator-schema'
 
+function buildAddress(values: CollaboratorFormData) {
+  const address = {
+    street: values.street?.trim() || undefined,
+    neighborhood: values.neighborhood?.trim() || undefined,
+    buildingNumber: values.buildingNumber?.trim() || undefined,
+    complement: values.complement?.trim() || undefined,
+    zipCode: values.zipCode?.trim() || undefined,
+    countryId: values.country || undefined,
+    stateId: values.state || undefined,
+    cityId: values.city || undefined,
+  }
+
+  const hasAny = Object.values(address).some((v) => v !== undefined)
+  return hasAny ? address : undefined
+}
+
 
 export default function CreateCoachScreen() {
   const { colors } = useTheme()
   const navigation = useNavigation()
   const { createCoach } = useCreateCoach()
 
+  const [location, setLocation] = useState({
+  countryId: null as string | null,
+  stateId: null as string | null,
+  cityId: null as string | null
+})
+
   const form = useForm<CollaboratorFormData>({
-    resolver: zodResolver(CollaboratorSchema),
-        defaultValues: {
-            name: '',
-            email: '',
-            cpf: '',
-            phone: '',
-            isEnabled: true,
-            schedulerColor: '#3B82F6'
-        }
-    })
+  resolver: zodResolver(CollaboratorSchema),
+  defaultValues: {
+    name: '',
+    email: '',
+    cpf: '',
+    phone: '',
+    isEnabled: true,
+    schedulerColor: '#3B82F6',
+
+    country: null,
+    state: null,
+    city: null,
+
+    zipCode: '',
+    street: '',
+    buildingNumber: '',
+    neighborhood: '',
+    complement: '',
+  }
+})
 
   const { handleSubmit } = form
 
@@ -40,15 +72,16 @@ export default function CreateCoachScreen() {
   }
 
   async function onSubmit(values: CollaboratorFormData) {
-    // payload compatível com CreateCoachDto (ajuste se teu DTO tiver outros campos)
     const payload = cleanEmptyStrings({
-    name: values.name.trim(),
-    email: values.email.trim().toLowerCase(),
-    cpf: values.cpf?.trim() || undefined,
-    phone: values.phone?.trim() || undefined,
-    isEnabled: values.isEnabled ?? true,
-    schedulerColor: values.schedulerColor.trim()
-  })
+      name: values.name.trim(),
+      email: values.email.trim().toLowerCase(),
+      cpf: values.cpf?.trim() || undefined,
+      phone: values.phone?.trim() || undefined,
+      isEnabled: values.isEnabled ?? true,
+      schedulerColor: values.schedulerColor.trim(),
+
+      address: buildAddress(values),
+    })
 
     try {
       await createCoach(payload)
@@ -81,6 +114,8 @@ export default function CreateCoachScreen() {
           colors={colors}
           title="Cadastrar Colaborador"
           onSubmit={handleSubmit(onSubmit)}
+          location={location}
+          setLocation={setLocation}
         />
       </ScrollView>
     </SafeAreaView>

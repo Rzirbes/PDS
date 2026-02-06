@@ -1,8 +1,8 @@
 import { apiFetch } from './api';
 
 export interface Country {
-    id: string;  // UUID
-    name: string;
+  id: string;     // <-- string, porque o form guarda string
+  name: string;
 }
 
 export interface State {
@@ -27,7 +27,9 @@ export async function getCountries(): Promise<Country[]> {
 }
 
 export async function getStates(countryId: string): Promise<State[]> {
+    console.log('CountriID 1' + countryId)
     const res = await apiFetch<{ states: { value: string; label: string }[] }>(`states?countryId=${countryId}`);
+    console.log('CountriID 2' + countryId)
     console.log('resposta crua do getStates:', res);
     return res.states.map((item) => ({
         id: item.value,

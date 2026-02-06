@@ -6,6 +6,7 @@ import { Controller, UseFormReturn } from 'react-hook-form'
 import ThemedInput from '../ui/themedInput'
 import { FormSection } from '../ui/form-section'
 import ColorPicker from 'react-native-wheel-color-picker'
+import LocationSelect from '../ui/location-select'
 
 interface CoachFormProps {
   form: UseFormReturn<any>
@@ -14,6 +15,12 @@ interface CoachFormProps {
   onSubmit: () => void
   isEdit?: boolean
   renderExtraSections?: React.ReactNode
+  location: {
+    countryId: string | null
+    stateId: string | null
+    cityId: string | null
+  }
+  setLocation: (loc: any) => void
 }
 
 const inputFields = [
@@ -21,9 +28,28 @@ const inputFields = [
   { name: 'email', label: 'Email', placeholder: 'email@dominio.com' },
   { name: 'cpf', label: 'CPF', placeholder: 'CPF (opcional)' },
   { name: 'phone', label: 'Telefone', placeholder: '(99) 99999-9999 (opcional)' }
+  
 ]
 
-export function CoachForm({ form, colors, title, onSubmit, renderExtraSections }: CoachFormProps) {
+const addressFields = [
+  { name: 'zipCode', label: 'CEP', placeholder: '00000-000' },
+  { name: 'street', label: 'Rua', placeholder: 'Rua das Flores' },
+  { name: 'buildingNumber', label: 'Número', placeholder: '123' },
+  { name: 'neighborhood', label: 'Bairro', placeholder: 'Centro' },
+  { name: 'complement', label: 'Complemento', placeholder: 'Apt 101' },
+]
+
+
+export function CoachForm({  
+  form,
+  colors,
+  title,
+  onSubmit,
+  renderExtraSections,
+  location,
+  setLocation
+}: CoachFormProps) { 
+
   const renderInputs = (fields: string[]) => {
     return fields.map((fieldName) => {
       const f = inputFields.find((i) => i.name === fieldName)
@@ -68,6 +94,33 @@ export function CoachForm({ form, colors, title, onSubmit, renderExtraSections }
             </View>
           )}
         />
+      </FormSection>
+
+      <FormSection title="Endereço do colaborador">
+        <LocationSelect
+          location={location}
+          setLocation={setLocation}
+          control={form.control}
+          watch={form.watch}
+          setValue={form.setValue}
+        />
+
+        {addressFields.map((f) => (
+          <View key={f.name} style={{ marginBottom: 12 }}>
+            <Text style={{ color: colors.text, marginBottom: 4 }}>{f.label}</Text>
+            <Controller
+              control={form.control}
+              name={f.name as any}
+              render={({ field: { onChange, value } }) => (
+                <ThemedInput
+                  placeholder={f.placeholder}
+                  onChangeText={onChange}
+                  value={typeof value === 'string' ? value : ''}
+                />
+              )}
+            />
+          </View>
+        ))}
       </FormSection>
 
       <FormSection title="Agenda">
